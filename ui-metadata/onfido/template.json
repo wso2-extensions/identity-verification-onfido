@@ -1,0 +1,28 @@
+{
+  "Type": "ONFIDO",
+  "Name": "Onfido",
+  "description": "ONFIDO Identity Verification Provider",
+  "isEnabled": false,
+  "claims": [
+    {
+      "localClaim": "http://wso2.org/claims/givenname",
+      "idvpClaim": "first_name"
+    },
+    {
+      "localClaim": "http://wso2.org/claims/lastname",
+      "idvpClaim": "last_name"
+    }
+  ],
+  "configProperties": [
+    {
+      "key": "token",
+      "value": "",
+      "isSecret": true
+    },
+    {
+      "key": "base_url",
+      "value": "https://api.eu.onfido.com/v3.6",
+      "isSecret": false
+    }
+  ]
+}

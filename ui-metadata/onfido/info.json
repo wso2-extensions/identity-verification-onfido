@@ -1,0 +1,9 @@
+{
+  "id": "ONFIDO",
+  "name": "Onfido",
+  "description": "Enable identity verification through Onfido",
+  "tags": ["Enterprise"],
+  "category": "DEFAULT",
+  "displayOrder": 1,
+  "type": "identity-verification-provider"
+}
