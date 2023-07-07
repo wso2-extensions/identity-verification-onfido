@@ -2,7 +2,7 @@
   "Type": "ONFIDO",
   "Name": "Onfido",
   "description": "ONFIDO Identity Verification Provider",
-  "isEnabled": false,
+  "isEnabled": true,
   "claims": [
     {
       "localClaim": "http://wso2.org/claims/givenname",
@@ -23,6 +23,11 @@
       "key": "base_url",
       "value": "https://api.eu.onfido.com/v3.6",
       "isSecret": false
+    },
+    {
+      "key": "webhook_token",
+      "value": "",
+      "isSecret": true
     }
   ]
 }

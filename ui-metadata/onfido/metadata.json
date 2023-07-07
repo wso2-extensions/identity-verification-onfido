@@ -13,8 +13,19 @@
           "maxLength": 100
         },
         {
-          "name": "base_url",
+          "name": "webhook_token",
           "displayOrder": 2,
+          "hint": "The Webhook token generated via the Onfido dashboard",
+          "label": "Webhook Token",
+          "type": "password",
+          "required": false,
+          "isSecret": true,
+          "dataComponentId": "idvp-edit-config-settings-webhook-token",
+          "maxLength": 100
+        },
+        {
+          "name": "base_url",
+          "displayOrder": 3,
           "hint": "The base url of Onfido server",
           "label": "Base URL",
           "type": "url",
