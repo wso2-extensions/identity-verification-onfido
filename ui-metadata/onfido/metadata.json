@@ -1,0 +1,39 @@
+{
+  "common": {
+      "configProperties": [
+        {
+          "name": "token",
+          "displayOrder": 1,
+          "hint": "The API token generated via the Onfido dashboard.",
+          "label": "API Token",
+          "type": "password",
+          "required": true,
+          "isSecret": true,
+          "dataComponentId": "idvp-edit-config-settings-token",
+          "maxLength": 100
+        },
+        {
+          "name": "webhook_token",
+          "displayOrder": 2,
+          "hint": "The webhook token generated via the Onfido dashboard.",
+          "label": "Webhook Token",
+          "type": "password",
+          "required": false,
+          "isSecret": true,
+          "dataComponentId": "idvp-edit-config-settings-webhook-token",
+          "maxLength": 100
+        },
+        {
+          "name": "base_url",
+          "displayOrder": 3,
+          "hint": "The base URL of Onfido server.",
+          "label": "Base URL",
+          "type": "url",
+          "defaultValue": "https://api.eu.onfido.com/v3.6",
+          "required": true,
+          "isSecret": false,
+          "dataComponentId": "idvp-edit-config-settings-base-url"
+        }
+      ]
+  }
+}
