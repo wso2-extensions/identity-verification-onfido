@@ -4,7 +4,7 @@
         {
           "name": "token",
           "displayOrder": 1,
-          "hint": "The API token generated via the Onfido dashboard",
+          "hint": "The API token generated via the Onfido dashboard.",
           "label": "API Token",
           "type": "password",
           "required": true,
@@ -15,7 +15,7 @@
         {
           "name": "webhook_token",
           "displayOrder": 2,
-          "hint": "The Webhook token generated via the Onfido dashboard",
+          "hint": "The webhook token generated via the Onfido dashboard.",
           "label": "Webhook Token",
           "type": "password",
           "required": false,
@@ -26,7 +26,7 @@
         {
           "name": "base_url",
           "displayOrder": 3,
-          "hint": "The base url of Onfido server",
+          "hint": "The base URL of Onfido server.",
           "label": "Base URL",
           "type": "url",
           "defaultValue": "https://api.eu.onfido.com/v3.6",
