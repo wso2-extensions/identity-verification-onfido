@@ -22,7 +22,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.io.IOException;
@@ -47,9 +46,9 @@ public class HTTPClientManager {
     /**
      * Creates a client manager.
      *
-     * @throws OnfidoException Exception thrown when an error occurred when creating HTTP client.
+     * @throws OnfidoServerException Exception thrown when an error occurred when creating HTTP client.
      */
-    private HTTPClientManager() throws OnfidoException {
+    private HTTPClientManager() throws OnfidoServerException {
 
         PoolingHttpClientConnectionManager connectionManager;
         try {
@@ -67,9 +66,9 @@ public class HTTPClientManager {
     /**
      * Returns an instance of the HTTPClientManager.
      *
-     * @throws OnfidoException Exception thrown when an error occurred when creating HTTP client.
+     * @throws OnfidoServerException Exception thrown when an error occurred when creating HTTP client.
      */
-    public static HTTPClientManager getInstance() throws OnfidoException {
+    public static HTTPClientManager getInstance() throws OnfidoServerException {
 
         if (httpClientManagerInstance == null) {
             synchronized (HTTPClientManager.class) {
@@ -85,9 +84,9 @@ public class HTTPClientManager {
      * Get HTTP client.
      *
      * @return CloseableHttpClient instance.
-     * @throws OnfidoException Exception thrown when an error occurred when getting HTTP client.
+     * @throws OnfidoServerException Exception thrown when an error occurred when getting HTTP client.
      */
-    public CloseableHttpClient getHttpClient() throws OnfidoException {
+    public CloseableHttpClient getHttpClient() throws OnfidoServerException {
 
         if (isNull(httpClient)) {
             throw new OnfidoServerException(ERROR_GETTING_HTTP_CLIENT.getCode(),

@@ -27,10 +27,67 @@
     <packaging>pom</packaging>
     <modules>
         <module>components/org.wso2.carbon.identity.verification.onfido.connector</module>
+        <module>components/org.wso2.carbon.identity.verification.onfido.api</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${cxf-bundle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-service-description</artifactId>
+                <version>${cxf-bundle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+                <version>${spring-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax.ws.rs-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-jaxrs</artifactId>
+                <version>${swagger-jaxrs.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>jackson-dataformat-yaml</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.ws.rs</groupId>
+                        <artifactId>jsr311-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>commons-lang.wso2</groupId>
                 <artifactId>commons-lang</artifactId>
@@ -57,49 +114,14 @@
                 <version>${jackson-jaxrs-json-provider.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-jaxrs</artifactId>
-                <version>${swagger.jaxrs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-                <version>${cxf-bundle.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-bundle-jaxrs</artifactId>
                 <version>${cxf-bundle-jaxrs.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-rs-service-description</artifactId>
-                <version>${cxf-bundle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>javax.ws.rs-api</artifactId>
-                <version>${javax.ws.rs-api.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs</artifactId>
                 <version>${javax.ws.rs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${springframework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.extension.identity.verification</groupId>
-                <artifactId>org.wso2.carbon.extension.identity.verification.api.rest.common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.extension.identity.verification</groupId>
-                <artifactId>org.wso2.carbon.extension.identity.verification.api.rest.v1</artifactId>
-                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.logging</groupId>
@@ -142,11 +164,6 @@
                 <version>${org.json.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.extension.identity.verification</groupId>
-                <artifactId>org.wso2.carbon.extension.identity.verification.provider</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson-databind.version}</version>
@@ -155,11 +172,6 @@
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>${jackson-dataformat-xml.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpcomponents-httpclient.wso2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate.validator</groupId>
@@ -191,8 +203,13 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.extension.identity.verification</groupId>
+                <artifactId>org.wso2.carbon.extension.identity.verification.provider</artifactId>
+                <version>${identity.verification.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.extension.identity.verification</groupId>
                 <artifactId>org.wso2.carbon.extension.identity.verification.mgt</artifactId>
-                <version>${project.version}</version>
+                <version>${identity.verification.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
@@ -208,6 +225,26 @@
                 <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.user.core</artifactId>
                 <version>${carbon.kernel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.verification</groupId>
+                <artifactId>org.wso2.carbon.identity.verification.onfido.connector</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.verification</groupId>
+                <artifactId>org.wso2.carbon.identity.verification.onfido.api.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.verification</groupId>
+                <artifactId>org.wso2.carbon.identity.verification.onfido.api.v1</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -296,6 +333,8 @@
         <org.osgi.version>7.0.0</org.osgi.version>
         <org.apache.httpcomponents.version>4.5.13</org.apache.httpcomponents.version>
         <carbon.kernel.version>4.9.0</carbon.kernel.version>
+        <commons-lang3.version>3.10</commons-lang3.version>
+        <identity.verification.version>1.0.3-SNAPSHOT</identity.verification.version>
 
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
@@ -307,6 +346,16 @@
         <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
         <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <identity.verification.package.version.range>[1.0.0, 2.0.0)</identity.verification.package.version.range>
+        <maven.war.plugin.version>2.2</maven.war.plugin.version>
+        <jackson-jaxrs-json-provider.version>2.13.2</jackson-jaxrs-json-provider.version>
+        <jackson-databind.version>2.13.4.2</jackson-databind.version>
+        <jackson-dataformat-xml.version>2.13.2</jackson-dataformat-xml.version>
+        <cxf-bundle.version>3.5.0</cxf-bundle.version>
+        <jackson.version>1.9.13</jackson.version>
+        <spring-web.version>5.3.25</spring-web.version>
+        <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
+
     </properties>
 
 </project>

@@ -32,6 +32,7 @@ import org.wso2.carbon.extension.identity.verification.mgt.model.IdentityVerifie
 import org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationConstants;
 import org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationExceptionMgt;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVProvider;
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 import org.wso2.carbon.identity.verification.onfido.connector.internal.OnfidoIDVDataHolder;
 import org.wso2.carbon.identity.verification.onfido.connector.web.OnfidoAPIClient;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -49,8 +50,10 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.CHECK_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.COMPLETED;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CHECKING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CLAIM_VALUE_NOT_EXIST;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_IDV_PROVIDER;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_ALREADY_INITIATED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_STATUS_NOT_FOUND;
@@ -115,41 +118,47 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         Map<String, String> idVProviderClaimWithValueMap =
                 getIdVProviderClaimWithValueMap(userId, tenantId, idVProvider, verificationRequiredClaims);
 
-        if (!idVProviderClaimWithValueMap.isEmpty()) {
-            // The idVProviderClaimWithValueMap will contain the claims that need to be initiated the verification.
-            JSONObject applicantRequestBody = getApplicantRequestBody(idVProviderClaimWithValueMap);
-            if (StringUtils.isEmpty(applicantId)) {
-                JSONObject onFidoJsonObject = OnfidoAPIClient.
-                        createApplicant(idVProviderConfigProperties, applicantRequestBody);
-                applicantId = (String) onFidoJsonObject.get(ID);
+        try {
+            if (!idVProviderClaimWithValueMap.isEmpty()) {
+                // The idVProviderClaimWithValueMap will contain the claims that need to be initiated the verification.
+                JSONObject applicantRequestBody = getApplicantRequestBody(idVProviderClaimWithValueMap);
+                if (StringUtils.isEmpty(applicantId)) {
+                    JSONObject onFidoJsonObject = OnfidoAPIClient.
+                            createApplicant(idVProviderConfigProperties, applicantRequestBody);
+
+                    applicantId = (String) onFidoJsonObject.get(ID);
+                } else {
+                    OnfidoAPIClient.updateApplicant(idVProviderConfigProperties, applicantRequestBody);
+                }
+
+                JSONObject sdkTokenRequestBody = new JSONObject();
+                sdkTokenRequestBody.put(APPLICANT_ID, applicantId);
+                JSONObject sdkTokenJsonObject =
+                        OnfidoAPIClient.createSDKToken(idVProviderConfigProperties, sdkTokenRequestBody);
+
+                Map<String, Object> metadata = getInitiatedVerificationMetadata(applicantId);
+                for (IdVClaim idVClaim : verificationRequiredClaims) {
+                    idVClaim.setIsVerified(false);
+                    idVClaim.setUserId(userId);
+                    idVClaim.setIdVPId(idVProvider.getIdVProviderUuid());
+                    idVClaim.setMetadata(metadata);
+                }
+                storeIdVClaims(userId, verificationRequiredClaims, tenantId);
+
+                /* Since storing the SDK token in the database, is not required, it will be added after storing the IDV
+                claims. The SDK token will be returned for the verification initiation response in order to render the
+                Onfido SDK. */
+                metadata.put(SDK_TOKEN, sdkTokenJsonObject.get(TOKEN));
+                for (IdVClaim idVClaim : verificationRequiredClaims) {
+                    idVClaim.setMetadata(metadata);
+                }
             } else {
-                OnfidoAPIClient.updateApplicant(idVProviderConfigProperties, applicantRequestBody);
+                throw new IdentityVerificationClientException(ERROR_VERIFICATION_ALREADY_INITIATED.getCode(),
+                        ERROR_VERIFICATION_ALREADY_INITIATED.getMessage());
             }
-
-            JSONObject sdkTokenRequestBody = new JSONObject();
-            sdkTokenRequestBody.put(APPLICANT_ID, applicantId);
-            JSONObject sdkTokenJsonObject =
-                    OnfidoAPIClient.createSDKToken(idVProviderConfigProperties, sdkTokenRequestBody);
-
-            Map<String, Object> metadata = getInitiatedVerificationMetadata(applicantId);
-            for (IdVClaim idVClaim : verificationRequiredClaims) {
-                idVClaim.setIsVerified(false);
-                idVClaim.setUserId(userId);
-                idVClaim.setIdVPId(idVProvider.getIdVProviderUuid());
-                idVClaim.setMetadata(metadata);
-            }
-            storeIdVClaims(userId, verificationRequiredClaims, tenantId);
-
-            /* Since storing the SDK token in the database, is not required, it will be added after storing the IDV
-            claims. The SDK token will be returned for the verification initiation response in order to render the
-            Onfido SDK. */
-            metadata.put(SDK_TOKEN, sdkTokenJsonObject.get(TOKEN));
-            for (IdVClaim idVClaim : verificationRequiredClaims) {
-                idVClaim.setMetadata(metadata);
-            }
-        } else {
-            throw new IdentityVerificationClientException(ERROR_VERIFICATION_ALREADY_INITIATED.getCode(),
-                    ERROR_VERIFICATION_ALREADY_INITIATED.getMessage());
+        } catch (OnfidoServerException e) {
+            throw new IdentityVerificationServerException(ERROR_INITIATING_ONFIDO_VERIFICATION.getCode(),
+                    ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage());
         }
         return verificationRequiredClaims;
     }
@@ -159,24 +168,29 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
                                                         Map<String, String> idVProviderConfigProperties,
                                                         int tenantId) throws IdentityVerificationException {
 
-        String applicantId = getApplicantId(userId, tenantId, idVProvider);
-        JSONObject applicantRequestBody = getCheckRequestBody(applicantId);
-        JSONObject checkJsonObject =
-                OnfidoAPIClient.verificationCheck(idVProviderConfigProperties, applicantRequestBody);
-        String checkId = checkJsonObject.get(ID).toString();
-
-        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
-        Map<String, Object> metadata = getCompletedVerificationMetadata(applicantId, checkId);
         List<IdVClaim> verificationClaim = new ArrayList<>();
-        for (IdVClaim idVClaim : verificationRequiredClaims) {
-            idVClaim = OnfidoIDVDataHolder.getInstance().
-                    getIdentityVerificationManager().getIdVClaim(userId, idVClaim.getClaimUri(),
-                            idVProvider.getIdVProviderUuid(), tenantId);
-            if (!idVClaim.isVerified()) {
-                idVClaim.setMetadata(metadata);
-                updateIdVClaim(userId, idVClaim, tenantId);
-                verificationClaim.add(idVClaim);
+        try {
+            String applicantId = getApplicantId(userId, tenantId, idVProvider);
+            JSONObject applicantRequestBody = getCheckRequestBody(applicantId);
+            JSONObject checkJsonObject =
+                    OnfidoAPIClient.verificationCheckPost(idVProviderConfigProperties, applicantRequestBody);
+            String checkId = checkJsonObject.get(ID).toString();
+
+            List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+            Map<String, Object> metadata = getCompletedVerificationMetadata(applicantId, checkId);
+            for (IdVClaim idVClaim : verificationRequiredClaims) {
+                idVClaim = OnfidoIDVDataHolder.getInstance().
+                        getIdentityVerificationManager().getIdVClaim(userId, idVClaim.getClaimUri(),
+                                idVProvider.getIdVProviderUuid(), tenantId);
+                if (!idVClaim.isVerified()) {
+                    idVClaim.setMetadata(metadata);
+                    updateIdVClaim(userId, idVClaim, tenantId);
+                    verificationClaim.add(idVClaim);
+                }
             }
+        } catch (OnfidoServerException e) {
+            throw new IdentityVerificationServerException(ERROR_CHECKING_ONFIDO_VERIFICATION.getCode(),
+                    ERROR_CHECKING_ONFIDO_VERIFICATION.getMessage());
         }
         return verificationClaim;
     }
