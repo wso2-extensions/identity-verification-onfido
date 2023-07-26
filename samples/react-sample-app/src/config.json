@@ -1,0 +1,8 @@
+{
+    "clientID": "8oY2wR89F2djzhkHP2xtVfz29Awa",
+    "baseUrl": "https://localhost:9443",
+    "signInRedirectURL": "https://localhost:3000",
+    "signOutRedirectURL": "https://localhost:3000",
+    "scope": [ "openid", "profile", "internal_login"],
+    "identityVerificationProviderId": "2e6c7cf6-21a3-43ca-9286-d0def7b28d1f"
+}
