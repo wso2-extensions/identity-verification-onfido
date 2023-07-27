@@ -30,6 +30,7 @@ public class OnfidoConstants {
     public static final String SDK_TOKEN = "sdk_token";
     public static final String CHECK_ID = "check_id";
     public static final String TOKEN = "token";
+    public static final String WEBHOOK_TOKEN = "webhook_token";
     public static final String INITIATED = "INITIATED";
     public static final String COMPLETED = "COMPLETED";
     public static final String IN_PROGRESS = "IN_PROGRESS";
@@ -63,12 +64,15 @@ public class OnfidoConstants {
                 "Getting the Onfido SDK token was failed with the response %s."),
         ERROR_RETRIEVING_IDV_PROVIDER("10008",
                 "IdVProvider is not available or not enabled"),
-        ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10009",
-                "IdVProvider configuration properties are empty or missing"),
+        ERROR_SIGNATURE("10009", "Signature is null"),
         ERROR_CREATING_HTTP_CLIENT("10010", "Server error encountered while creating http client"),
         ERROR_UPDATING_ONFIDO_APPLICANT("10011",
                 "The applicant updating in the Onfido failed with the response %s."),
-        ERROR_GETTING_HTTP_CLIENT("10012", "Error preparing http client to publish events.");
+        ERROR_GETTING_HTTP_CLIENT("10012", "Error preparing http client to publish events."),
+        ERROR_CHECKING_ONFIDO_VERIFICATION("10013", "Error while performing Onfido check."),
+        ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10014",
+                "IdVProvider configuration properties are empty."),
+        ERROR_SIGNATURE_VALIDATION("10009", "Error occutured while validating the signature.");
 
         private final String code;
         private final String message;
