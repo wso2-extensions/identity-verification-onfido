@@ -20,17 +20,14 @@
     <bean class="org.wso2.carbon.identity.verification.onfido.api.v1.core.OnfidoIdvService"/>
     <bean class="org.wso2.carbon.identity.verification.onfido.api.v1.impl.DefaultApiServiceImpl"/>
 
-    <bean id="IdVProviderManagerFactoryBean"
+    <bean id="idVProviderManagerFactoryBean"
           class="org.wso2.carbon.identity.verification.onfido.api.common.factory.IdVProviderManagerOSGIFactory"/>
-    <bean id="IdentityVerificationServiceFactoryBean"
+    <bean id="identityVerificationServiceFactoryBean"
           class="org.wso2.carbon.identity.verification.onfido.api.common.factory.IdentityVerificationManagerOSGIFactory"/>
 
-    <bean id="idVProviderManagerHolderBean"
-          class="org.wso2.carbon.identity.verification.onfido.api.common.IdentityVerificationServiceHolder">
-        <property name="idVProviderManager" ref="IdVProviderManagerFactoryBean"/>
-    </bean>
-    <bean id="IdentityVerificationServiceHolderBean"
-          class="org.wso2.carbon.identity.verification.onfido.api.common.IdentityVerificationServiceHolder">
-        <property name="identityVerificationManager" ref="IdentityVerificationServiceFactoryBean"/>
+    <bean id="onfidoIdvServiceHolderBean"
+          class="org.wso2.carbon.identity.verification.onfido.api.common.OnfidoIdvServiceHolder">
+        <property name="idVProviderManager" ref="idVProviderManagerFactoryBean"/>
+        <property name="identityVerificationManager" ref="identityVerificationServiceFactoryBean"/>
     </bean>
 </beans>

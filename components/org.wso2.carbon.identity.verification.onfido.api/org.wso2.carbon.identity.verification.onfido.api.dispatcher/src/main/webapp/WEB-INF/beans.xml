@@ -36,7 +36,7 @@
 
     <jaxrs:server id="onfido" address="/v1">
         <jaxrs:serviceBeans>
-            <bean class="org.wso2.carbon.identity.verification.onfido.api.v1.VerifyApi"/>
+            <bean class="org.wso2.carbon.identity.verification.onfido.api.v1.DefaultApi"/>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
             <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
@@ -46,7 +46,6 @@
                     </bean>
                 </constructor-arg>
             </bean>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
             <bean class="org.wso2.carbon.identity.verification.onfido.api.dispatcher.JsonProcessingExceptionMapper"/>
             <bean class="org.wso2.carbon.identity.verification.onfido.api.dispatcher.InputValidationExceptionMapper"/>
             <bean class="org.wso2.carbon.identity.verification.onfido.api.dispatcher.DefaultExceptionMapper"/>
