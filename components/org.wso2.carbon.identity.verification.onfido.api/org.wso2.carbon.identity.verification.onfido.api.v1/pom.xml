@@ -49,6 +49,7 @@
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-jaxrs</artifactId>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -82,21 +83,24 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.extension.identity.verification</groupId>
             <artifactId>org.wso2.carbon.extension.identity.verification.mgt</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.verification</groupId>
             <artifactId>org.wso2.carbon.identity.verification.onfido.connector</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.verification</groupId>
             <artifactId>org.wso2.carbon.identity.verification.onfido.api.common</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>

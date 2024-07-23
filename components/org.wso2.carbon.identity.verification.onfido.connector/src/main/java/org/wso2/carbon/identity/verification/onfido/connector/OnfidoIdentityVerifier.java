@@ -253,7 +253,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
 
         String applicantId = null;
         IdVClaim[] idVClaims = OnfidoIDVDataHolder.getInstance().getIdentityVerificationManager().
-                getIdVClaims(userId, idVProvider.getIdVProviderUuid(), tenantId);
+                getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
         for (IdVClaim idVClaim : idVClaims) {
             if (idVClaim != null && idVClaim.getMetadata() != null &&
                     idVClaim.getMetadata().get(APPLICANT_ID) != null && !idVClaim.isVerified()) {
