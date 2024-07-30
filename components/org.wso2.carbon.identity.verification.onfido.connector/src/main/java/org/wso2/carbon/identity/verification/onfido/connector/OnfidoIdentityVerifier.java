@@ -32,6 +32,7 @@ import org.wso2.carbon.extension.identity.verification.mgt.model.IdentityVerifie
 import org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationConstants;
 import org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationExceptionMgt;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVProvider;
+import org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 import org.wso2.carbon.identity.verification.onfido.connector.internal.OnfidoIDVDataHolder;
 import org.wso2.carbon.identity.verification.onfido.connector.web.OnfidoAPIClient;
@@ -48,10 +49,9 @@ import java.util.Map;
 import static org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationConstants.ErrorMessage.ERROR_GETTING_USER_STORE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICANT_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.CHECK_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.COMPLETED;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CHECKING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CLAIM_VALUE_NOT_EXIST;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_IDV_PROVIDER;
@@ -59,11 +59,12 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_STATUS_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.INITIATED;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.IN_PROGRESS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.REPORT_NAMES;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.SDK_TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ID;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_NON_EXISTING_USER;
 
 /**
@@ -95,12 +96,12 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         switch (idVProperties.get(STATUS)) {
             case INITIATED:
                 // Initiate Onfido verification through creating applicant and retrieving sdk token
-                idVClaims = getInitiatedVerificationResponse(userId, identityVerifierData, tenantId,
+                idVClaims = initiateOnfidoVerification(userId, identityVerifierData, tenantId,
                         idVProvider, idVProviderConfigProperties);
                 break;
             case COMPLETED:
-                // Start onfido verification through Onfido check API call.
-                idVClaims = getCheckVerificationResponse(userId, identityVerifierData, idVProvider,
+                // Update the onfido verification status.
+                idVClaims = updateOnfidoVerificationStatus(userId, identityVerifierData, idVProvider,
                         idVProviderConfigProperties, tenantId);
                 break;
         }
@@ -108,7 +109,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         return identityVerifierData;
     }
 
-    private List<IdVClaim> getInitiatedVerificationResponse(String userId, IdentityVerifierData identityVerifierData,
+    private List<IdVClaim> initiateOnfidoVerification(String userId, IdentityVerifierData identityVerifierData,
                                                             int tenantId, IdVProvider idVProvider,
                                                             Map<String, String> idVProviderConfigProperties)
             throws IdentityVerificationException {
@@ -131,12 +132,22 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
                     OnfidoAPIClient.updateApplicant(idVProviderConfigProperties, applicantRequestBody);
                 }
 
+                // Create a workflow run
+                JSONObject workflowRunRequestBody = new JSONObject();
+                workflowRunRequestBody.put(WORKFLOW_ID, idVProviderConfigProperties.get(WORKFLOW_ID));
+                workflowRunRequestBody.put(APPLICANT_ID, applicantId);
+
+                JSONObject workflowRunJsonObject =
+                        OnfidoAPIClient.createWorkflowRun(idVProviderConfigProperties, workflowRunRequestBody);
+
+                // Generate a SDK token
                 JSONObject sdkTokenRequestBody = new JSONObject();
                 sdkTokenRequestBody.put(APPLICANT_ID, applicantId);
                 JSONObject sdkTokenJsonObject =
                         OnfidoAPIClient.createSDKToken(idVProviderConfigProperties, sdkTokenRequestBody);
 
-                Map<String, Object> metadata = getInitiatedVerificationMetadata(applicantId);
+                Map<String, Object> metadata =
+                        getInitiatedVerificationMetadata(applicantId, workflowRunJsonObject.get(ID).toString());
                 for (IdVClaim idVClaim : verificationRequiredClaims) {
                     idVClaim.setIsVerified(false);
                     idVClaim.setUserId(userId);
@@ -163,36 +174,43 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         return verificationRequiredClaims;
     }
 
-    private List<IdVClaim> getCheckVerificationResponse(String userId, IdentityVerifierData identityVerifierData,
-                                                        IdVProvider idVProvider,
-                                                        Map<String, String> idVProviderConfigProperties,
-                                                        int tenantId) throws IdentityVerificationException {
+    private List<IdVClaim> updateOnfidoVerificationStatus(String userId, IdentityVerifierData identityVerifierData,
+                                                          IdVProvider idVProvider,
+                                                          Map<String, String> idVProviderConfigProperties, int tenantId)
+            throws IdentityVerificationException {
 
         List<IdVClaim> verificationClaim = new ArrayList<>();
-        try {
-            String applicantId = getApplicantId(userId, tenantId, idVProvider);
-            JSONObject applicantRequestBody = getCheckRequestBody(applicantId);
-            JSONObject checkJsonObject =
-                    OnfidoAPIClient.verificationCheckPost(idVProviderConfigProperties, applicantRequestBody);
-            String checkId = checkJsonObject.get(ID).toString();
-
-            List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
-            Map<String, Object> metadata = getCompletedVerificationMetadata(applicantId, checkId);
-            for (IdVClaim idVClaim : verificationRequiredClaims) {
-                idVClaim = OnfidoIDVDataHolder.getInstance().
-                        getIdentityVerificationManager().getIdVClaim(userId, idVClaim.getClaimUri(),
-                                idVProvider.getIdVProviderUuid(), tenantId);
-                if (!idVClaim.isVerified()) {
-                    idVClaim.setMetadata(metadata);
-                    updateIdVClaim(userId, idVClaim, tenantId);
-                    verificationClaim.add(idVClaim);
-                }
+        String workFlowRunId = getWorkFlowRunId(userId, tenantId, idVProvider);
+        OnfidoConstants.VerificationStatus
+                verificationStatus = getOnfidoVerificationStatus(workFlowRunId, idVProviderConfigProperties);
+        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+        for (IdVClaim idVClaim : verificationRequiredClaims) {
+            idVClaim = OnfidoIDVDataHolder.getInstance()
+                    .getIdentityVerificationManager()
+                    .getIdVClaim(userId, idVClaim.getClaimUri(), idVProvider.getIdVProviderUuid(), tenantId);
+            if (!idVClaim.isVerified()) {
+                Map<String, Object> metadata = idVClaim.getMetadata();
+                metadata.put(STATUS, verificationStatus.getStatus());
+                idVClaim.setMetadata(metadata);
+                updateIdVClaim(userId, idVClaim, tenantId);
+                verificationClaim.add(idVClaim);
             }
-        } catch (OnfidoServerException e) {
-            throw new IdentityVerificationServerException(ERROR_CHECKING_ONFIDO_VERIFICATION.getCode(),
-                    ERROR_CHECKING_ONFIDO_VERIFICATION.getMessage());
         }
         return verificationClaim;
+    }
+
+    private OnfidoConstants.VerificationStatus getOnfidoVerificationStatus(String workFlowRunId,
+                                                                           Map<String, String> idVProviderConfigProperties)
+            throws IdentityVerificationException {
+
+        try{
+            JSONObject verificationStatusJsonObject =
+                    OnfidoAPIClient.getVerificationStatus(idVProviderConfigProperties, workFlowRunId);
+            return OnfidoConstants.VerificationStatus.fromString(verificationStatusJsonObject.getString(STATUS));
+        } catch (OnfidoServerException e) {
+            throw new IdentityVerificationServerException(ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getCode(),
+                    ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getMessage());
+        }
     }
 
     private Map<String, String> getIdVProviderClaimWithValueMap(String userId, int tenantId, IdVProvider idVProvider,
@@ -231,20 +249,12 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         return idVProviderClaimWithValueMap;
     }
 
-    private Map<String, Object> getInitiatedVerificationMetadata(String applicantId) {
+    private Map<String, Object> getInitiatedVerificationMetadata(String applicantId, String workflowRunId) {
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(APPLICANT_ID, applicantId);
+        metadata.put(WORKFLOW_RUN_ID, workflowRunId);
         metadata.put(STATUS, INITIATED);
-        return metadata;
-    }
-
-    private Map<String, Object> getCompletedVerificationMetadata(String applicantId, String checkId) {
-
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put(APPLICANT_ID, applicantId);
-        metadata.put(STATUS, IN_PROGRESS);
-        metadata.put(CHECK_ID, checkId);
         return metadata;
     }
 
@@ -262,6 +272,22 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             }
         }
         return applicantId;
+    }
+
+    private static String getWorkFlowRunId(String userId, int tenantId, IdVProvider idVProvider)
+            throws IdentityVerificationException {
+
+        String workFlowRunId = null;
+        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getInstance().getIdentityVerificationManager().
+                getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
+        for (IdVClaim idVClaim : idVClaims) {
+            if (idVClaim != null && idVClaim.getMetadata() != null &&
+                    idVClaim.getMetadata().get(WORKFLOW_RUN_ID) != null && !idVClaim.isVerified()) {
+                workFlowRunId = (String) idVClaim.getMetadata().get(WORKFLOW_RUN_ID);
+                break;
+            }
+        }
+        return workFlowRunId;
     }
 
     private Map<String, String> getIdVPropertyMap(IdentityVerifierData identityVerifierData)
@@ -293,14 +319,6 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         return idVClaimRequestBody;
     }
 
-    private JSONObject getCheckRequestBody(String applicantId) {
-
-        JSONObject checkRequestBody = new JSONObject();
-        checkRequestBody.put(APPLICANT_ID, applicantId);
-        checkRequestBody.put(REPORT_NAMES, new String[]{"document", "facial_similarity_photo"});
-        return checkRequestBody;
-    }
-
     private UniqueIDUserStoreManager getUniqueIdEnabledUserStoreManager(int tenantId)
             throws IdentityVerificationServerException, UserStoreException {
 
@@ -317,7 +335,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
 
         if (idVProviderConfigProperties == null || idVProviderConfigProperties.isEmpty() ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(TOKEN)) ||
-                StringUtils.isBlank(idVProviderConfigProperties.get(BASE_URL))) {
+                StringUtils.isBlank(idVProviderConfigProperties.get(BASE_URL)) ||
+                StringUtils.isBlank(idVProviderConfigProperties.get(WORKFLOW_ID))) {
 
             throw new IdentityVerificationServerException(ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getCode(),
                     ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getMessage());

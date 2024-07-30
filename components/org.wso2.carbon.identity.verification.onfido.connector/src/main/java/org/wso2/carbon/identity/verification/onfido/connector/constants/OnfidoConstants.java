@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.verification.onfido.connector.constants;
 
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_VERIFICATION_STATUS;
+
 /**
  * This class contains the constants used in the Onfido connector.
  */
@@ -27,8 +30,9 @@ public class OnfidoConstants {
     public static final String ONFIDO = "ONFIDO";
     public static final String STATUS = "status";
     public static final String APPLICANT_ID = "applicant_id";
+    public static final String WORKFLOW_ID = "workflow_id";
+    public static final String WORKFLOW_RUN_ID = "workflow_run_id";
     public static final String SDK_TOKEN = "sdk_token";
-    public static final String CHECK_ID = "check_id";
     public static final String TOKEN = "token";
     public static final String WEBHOOK_TOKEN = "webhook_token";
     public static final String INITIATED = "INITIATED";
@@ -41,7 +45,8 @@ public class OnfidoConstants {
     public static final String REPORT_NAMES = "report_names";
     public static final String APPLICANTS_ENDPOINT = "/applicants";
     public static final String SDK_TOKEN_ENDPOINT = "/sdk_token";
-    public static final String CHECKS_ENDPOINT = "/checks";
+    public static final String WORKFLOW_RUN_ENDPOINT = "/workflow_runs";
+    public static final String STATUS_VERIFY_ENDPOINT = "/workflow_runs/";
 
     /**
      * Error messages.
@@ -60,19 +65,22 @@ public class OnfidoConstants {
                 "The applicant creation in the Onfido failed with the response %s."),
         ERROR_INITIATING_ONFIDO_VERIFICATION("10006",
                 "Initiating the verification in Onfido failed with the response %s."),
-        ERROR_GETTING_ONFIDO_SDK_TOKEN("10007",
+        ERROR_CREATING_WORKFLOW_RUN("10007",
+                "Creating the Onfido workflow run was failed with the response %s."),
+        ERROR_GETTING_ONFIDO_SDK_TOKEN("10008",
                 "Getting the Onfido SDK token was failed with the response %s."),
-        ERROR_RETRIEVING_IDV_PROVIDER("10008",
+        ERROR_RETRIEVING_IDV_PROVIDER("10009",
                 "IdVProvider is not available or not enabled"),
-        ERROR_SIGNATURE("10009", "Signature is null"),
-        ERROR_CREATING_HTTP_CLIENT("10010", "Server error encountered while creating http client"),
-        ERROR_UPDATING_ONFIDO_APPLICANT("10011",
+        ERROR_SIGNATURE("10010", "Signature is null"),
+        ERROR_CREATING_HTTP_CLIENT("10011", "Server error encountered while creating http client"),
+        ERROR_UPDATING_ONFIDO_APPLICANT("10012",
                 "The applicant updating in the Onfido failed with the response %s."),
-        ERROR_GETTING_HTTP_CLIENT("10012", "Error preparing http client to publish events."),
-        ERROR_CHECKING_ONFIDO_VERIFICATION("10013", "Error while performing Onfido check."),
-        ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10014",
+        ERROR_GETTING_HTTP_CLIENT("10013", "Error preparing http client to publish events."),
+        ERROR_GETTING_ONFIDO_VERIFICATION_STATUS("10014", "Error while retrieving the Onfido verification status."),
+        ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10015",
                 "IdVProvider configuration properties are empty."),
-        ERROR_SIGNATURE_VALIDATION("10009", "Error occutured while validating the signature.");
+        ERROR_SIGNATURE_VALIDATION("10016", "Error occuured while validating the signature."),
+        ERROR_INVALID_VERIFICATION_STATUS("10017", "Unknown verificaation status provided.");
 
         private final String code;
         private final String message;
@@ -99,4 +107,38 @@ public class OnfidoConstants {
             return code + ":" + message;
         }
     }
+
+    /**
+     * Statuses of an Onfido verification process.
+     */
+    public enum VerificationStatus {
+        PROCESSING("processing"),
+        AWAITING_INPUT("awaiting_input"),
+        APPROVED("approved"),
+        DECLINED("declined"),
+        REVIEW("review"),
+        ABANDONED("abandoned"),
+        ERROR("error");
+
+        private final String status;
+
+        VerificationStatus(String status) {
+            this.status = status;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public static VerificationStatus fromString(String status) throws OnfidoServerException {
+            for (VerificationStatus vs : VerificationStatus.values()) {
+                if (vs.status.equalsIgnoreCase(status)) {
+                    return vs;
+                }
+            }
+            throw new OnfidoServerException(ERROR_INVALID_VERIFICATION_STATUS.getCode(),
+                    ERROR_INVALID_VERIFICATION_STATUS.getMessage());
+        }
+    }
+
 }

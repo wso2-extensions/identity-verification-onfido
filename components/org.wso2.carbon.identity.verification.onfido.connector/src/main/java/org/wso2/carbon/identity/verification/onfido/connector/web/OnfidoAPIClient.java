@@ -31,14 +31,16 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICANTS_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.CHECKS_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_ONFIDO_APPLICANT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_RESPONSE;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_SDK_TOKEN;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UPDATING_ONFIDO_APPLICANT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.SDK_TOKEN_ENDPOINT;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS_VERIFY_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ENDPOINT;
 
 /**
  * This class contains the implementation of OnfidoAPIClient.
@@ -65,6 +67,31 @@ public class OnfidoAPIClient {
         } else {
             throw new OnfidoServerException(ERROR_CREATING_ONFIDO_APPLICANT.getCode(),
                     String.format(ERROR_CREATING_ONFIDO_APPLICANT.getMessage(),
+                            response.getStatusLine().getStatusCode()));
+        }
+    }
+
+    /**
+     * This method is used to create a workflow run in Onfido.
+     *
+     * @param idVConfigPropertyMap The map of the configuration properties.
+     * @param workflowRunRequestBody The request body for creating the workflow run in JSON format.
+     * @return The created workflow run details as a JSONObject.
+     * @throws OnfidoServerException If an error occurs while creating the workflow run on the Onfido server.
+     */
+    public static JSONObject createWorkflowRun(Map<String, String> idVConfigPropertyMap,
+                                               JSONObject workflowRunRequestBody)
+            throws OnfidoServerException {
+
+        String apiToken = idVConfigPropertyMap.get(TOKEN);
+        String uri = idVConfigPropertyMap.get(BASE_URL) + WORKFLOW_RUN_ENDPOINT;
+
+        HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri, workflowRunRequestBody.toString());
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
+            return getJsonObject(response);
+        } else {
+            throw new OnfidoServerException(ERROR_CREATING_WORKFLOW_RUN.getCode(),
+                    String.format(ERROR_CREATING_WORKFLOW_RUN.getMessage(),
                             response.getStatusLine().getStatusCode()));
         }
     }
@@ -119,53 +146,25 @@ public class OnfidoAPIClient {
     }
 
     /**
-     * This method is used to initialize the verification check in Onfido
-     * with the given verification claim data of a user.
+     * This method is used to retrieve the verification status of a workflow run in Onfido.
      *
      * @param idVConfigPropertyMap The map of the configuration properties.
-     * @param applicantRequestBody The applicant request body.
-     * @return The verification check response.
-     * @throws OnfidoServerException Identity verification server exception.
+     * @param workflowRunId The ID of the workflow run whose verification status is to be retrieved.
+     * @return The verification status of the workflow run as a JSONObject.
+     * @throws OnfidoServerException If an error occurs while retrieving the verification status from the Onfido server.
      */
-    public static JSONObject verificationCheckPost(Map<String, String> idVConfigPropertyMap,
-                                                   JSONObject applicantRequestBody)
+    public static JSONObject getVerificationStatus(Map<String, String> idVConfigPropertyMap , String workflowRunId)
             throws OnfidoServerException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
-        String uri = idVConfigPropertyMap.get(BASE_URL) + CHECKS_ENDPOINT;
-
-        HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri, String.valueOf(applicantRequestBody));
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-            return getJsonObject(response);
-        } else {
-            throw new OnfidoServerException(ERROR_INITIATING_ONFIDO_VERIFICATION.getCode(),
-                    String.format(ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage(),
-                            response.getStatusLine().getStatusCode()));
-        }
-    }
-
-    /**
-     * This method is used to retrieve the verification check in Onfido
-     * with the given check id.
-     *
-     * @param idVConfigPropertyMap The map of the configuration properties.
-     * @param checkId              The check id in onfido.
-     * @return The verification check response.
-     * @throws OnfidoServerException Identity verification server exception.
-     */
-    public static JSONObject verificationCheckGet(Map<String, String> idVConfigPropertyMap,
-                                                  String checkId)
-            throws OnfidoServerException {
-
-        String apiToken = idVConfigPropertyMap.get(TOKEN);
-        String uri = idVConfigPropertyMap.get(BASE_URL) + CHECKS_ENDPOINT + "/" + checkId;
+        String uri = idVConfigPropertyMap.get(BASE_URL) + STATUS_VERIFY_ENDPOINT + workflowRunId;
 
         HttpResponse response = OnfidoWebUtils.httpGet(apiToken, uri);
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             return getJsonObject(response);
         } else {
-            throw new OnfidoServerException(ERROR_INITIATING_ONFIDO_VERIFICATION.getCode(),
-                    String.format(ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage(),
+            throw new OnfidoServerException(ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getCode(),
+                    String.format(ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getMessage(),
                             response.getStatusLine().getStatusCode()));
         }
     }

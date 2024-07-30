@@ -24,8 +24,19 @@
           "maxLength": 100
         },
         {
-          "name": "base_url",
+          "name": "workflow_id",
           "displayOrder": 3,
+          "hint": "The unique identifier for the Workflow generated via the Onfido dashboard.",
+          "label": "Workflow ID",
+          "type": "password",
+          "required": true,
+          "isSecret": false,
+          "dataComponentId": "idvp-edit-config-settings-workflow_id",
+          "maxLength": 100
+        },
+        {
+          "name": "base_url",
+          "displayOrder": 4,
           "hint": "The base URL of Onfido server.",
           "label": "Base URL",
           "type": "url",
