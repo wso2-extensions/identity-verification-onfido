@@ -23,6 +23,8 @@ public class Constants {
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
     public static final String ERROR_PREFIX = "IDVO-";
+    public static final String RESOURCE_WORKFLOW_RUN = "workflow_run";
+    public static final String ACTION_WORKFLOW_RUN_COMPLETED = "workflow_run.completed";
 
     /**
      * Enum for identity verification related errors.
@@ -44,7 +46,12 @@ public class Constants {
                 "Error occurred while performing verification check."),
         ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA("65003",
                 "Error retrieving IDV claims by metadata.",
-                "Error occurred while retrieving IDV claims by metadata.");
+                "Error occurred while retrieving IDV claims by metadata."),
+
+        //Client errors
+        ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("65004",
+                 "Bad request : Received either an unsupported resource type or action.",
+                 "Supported values are resource_type: 'workflow_run' and action: 'workflow_run.completed'.");
 
         private final String code;
         private final String message;

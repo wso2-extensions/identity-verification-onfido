@@ -99,10 +99,10 @@ components:
           properties:
             resource_type:
               type: string
-              example: "check"
+              example: "workflow_run"
             action:
               type: string
-              example: "check.completed"
+              example: "workflow_run.completed"
             object:
               type: object
               properties:

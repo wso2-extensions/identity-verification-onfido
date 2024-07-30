@@ -22,7 +22,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONObject;
 import org.wso2.carbon.extension.identity.verification.mgt.exception.IdentityVerificationException;
 import org.wso2.carbon.extension.identity.verification.mgt.model.IdVClaim;
 import org.wso2.carbon.extension.identity.verification.provider.exception.IdVProviderMgtException;
@@ -36,9 +35,9 @@ import org.wso2.carbon.identity.verification.onfido.api.common.OnfidoIdvServiceH
 import org.wso2.carbon.identity.verification.onfido.api.common.error.APIError;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequest;
+import org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoClientException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
-import org.wso2.carbon.identity.verification.onfido.connector.web.OnfidoAPIClient;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -51,15 +50,20 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ACTION_WORKFLOW_RUN_COMPLETED;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_CHECK_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_RESOLVING_IDVP;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.RESOURCE_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE_VALIDATION;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WEBHOOK_TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ID;
 
 /**
  * Onfido Identity Verification Service implementation to be notified when he verification is completed.
@@ -68,11 +72,25 @@ public class OnfidoIdvService {
 
     private static final Log log = LogFactory.getLog(OnfidoIdvService.class);
 
+    /**
+     * Handles the Onfido webhook verification status update.
+     * This method is invoked when Onfido sends a verification status update via webhook.
+     * It validates the request verifying the signature, and updates the verification claims of the user based on the status.
+     *
+     * @param xSHA2Signature The SHA-2 signature from the Onfido webhook header for validation.
+     * @param idvpId         The identity verification provider ID.
+     * @param verifyRequest  The verification request payload from Onfido.
+     */
     public void verify(String xSHA2Signature, String idvpId, VerifyRequest verifyRequest) {
 
         int tenantId = getTenantId();
         try {
-            String checkId = verifyRequest.getPayload().getObject().getId();
+
+            String resourceType = verifyRequest.getPayload().getResourceType();
+            String action = verifyRequest.getPayload().getAction();
+
+            validateResourceTypeAndAction(resourceType, action);
+
             IdVProvider idVProvider =
                     OnfidoIdvServiceHolder.getIdVProviderManager().getIdVProvider(idvpId, tenantId);
             Map<String, String> idVProviderConfigProperties = getIdVConfigPropertyMap(idVProvider);
@@ -81,40 +99,32 @@ public class OnfidoIdvService {
             // Validate the signature available in the header with the webhook token.
             validateSignature(xSHA2Signature, idVProviderConfigProperties, verifyRequest);
 
-            JSONObject checkJsonObject =
-                    OnfidoAPIClient.verificationCheckGet(idVProviderConfigProperties, checkId);
-            String verificationStatus = checkJsonObject.get("result").toString();
-            String applicantIdValue = checkJsonObject.get("applicant_id").toString();
+            String workFlowRunId = verifyRequest.getPayload().getObject().getId();
+            OnfidoConstants.VerificationStatus status =
+                    OnfidoConstants.VerificationStatus.fromString(verifyRequest.getPayload().getObject().getStatus());
+
             IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager().
-                    getIdVClaimsByMetadata("applicant_id", applicantIdValue, idvpId, tenantId);
-            boolean isVerified;
-            String idvStatus;
-            if (StringUtils.equals(verificationStatus, "clear")) {
-                isVerified = true;
-                idvStatus = "VERIFIED";
-            } else {
-                isVerified = false;
-                idvStatus = "REJECTED";
-            }
-            for (IdVClaim idVClaim : idVClaims) {
-                if (idVClaim != null) {
-                    idVClaim.setIsVerified(isVerified);
-                }
-                String status = "status";
-                if (idVClaim != null && idVClaim.getMetadata() != null &&
-                        idVClaim.getMetadata().containsKey(status)) {
-                    idVClaim.getMetadata().replace(status, idvStatus);
-                }
-            }
+                    getIdVClaimsByMetadata(WORKFLOW_RUN_ID, workFlowRunId, idvpId, tenantId);
+            boolean isVerified = (status == OnfidoConstants.VerificationStatus.APPROVED);
+            updateIdVClaims(idVClaims, isVerified, status);
+
         } catch (IdVProviderMgtException e) {
             throw handleIdVException(e, ERROR_RESOLVING_IDVP, idvpId);
         } catch (OnfidoServerException e) {
             throw handleIdVException(e, ERROR_CHECK_VERIFICATION, idvpId);
         } catch (IdentityVerificationException e) {
             throw handleIdVException(e, ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA, idvpId);
+        } catch (OnfidoClientException e) {
+            throw handleIdVException (e, ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION);
         }
     }
 
+    /**
+     * Retrieves the tenant ID from the current context.
+     *
+     * @return The tenant ID.
+     * @throws APIError If there is an error retrieving the tenant ID.
+     */
     private int getTenantId() {
 
         String tenantDomain = ContextLoader.getTenantDomainFromContext();
@@ -143,6 +153,12 @@ public class OnfidoIdvService {
         return configPropertyMap;
     }
 
+    /**
+     * Validates the configuration properties of the Identity Verification Provider.
+     *
+     * @param idVProviderConfigProperties The configuration properties of the Identity Verification Provider.
+     * @throws OnfidoServerException If any required configuration property is missing or invalid.
+     */
     private void validateIdVProviderConfigProperties(Map<String, String> idVProviderConfigProperties)
             throws OnfidoServerException {
 
@@ -156,6 +172,14 @@ public class OnfidoIdvService {
         }
     }
 
+    /**
+     * Validates the signature available in the header with the webhook token.
+     *
+     * @param xSHA2Signature                The SHA-2 signature from the Onfido webhook.
+     * @param idVProviderConfigProperties   The configuration properties of the Identity Verification Provider.
+     * @param verifyRequest                 The verification request payload from Onfido.
+     * @throws OnfidoServerException If the signature validation fails.
+     */
     private void validateSignature(String xSHA2Signature, Map<String, String> idVProviderConfigProperties,
                                    VerifyRequest verifyRequest) throws OnfidoServerException {
 
@@ -184,6 +208,14 @@ public class OnfidoIdvService {
         }
     }
 
+    /**
+     * Computes the HMAC SHA-256 hash of a given value using the provided key.
+     *
+     * @param key   The key to use for HMAC computation.
+     * @param value The value to hash.
+     * @return The computed HMAC SHA-256 hash.
+     * @throws SignatureException If an error occurs during HMAC computation.
+     */
     private static String computeHmacSHA256(String key, String value) throws SignatureException {
 
         String result;
@@ -201,6 +233,12 @@ public class OnfidoIdvService {
         return result;
     }
 
+    /**
+     * Decodes a hexadecimal string into a byte array.
+     *
+     * @param hexadecimalString The hexadecimal string to decode.
+     * @return The decoded byte array.
+     */
     private static byte[] decodeHexadecimal(String hexadecimalString) {
 
         int len = hexadecimalString.length();
@@ -212,6 +250,13 @@ public class OnfidoIdvService {
         return data;
     }
 
+    /**
+     * Compares two byte arrays in constant time to prevent timing attacks.
+     *
+     * @param a The first byte array.
+     * @param b The second byte array.
+     * @return True if the byte arrays are equal, false otherwise.
+     */
     private static boolean constantTimeEquals(byte[] a, byte[] b) {
 
         if (a.length != b.length) {
@@ -224,11 +269,18 @@ public class OnfidoIdvService {
         return result == 0;
     }
 
+    /**
+     * Handles identity verification exceptions and constructs an APIError response.
+     *
+     * @param e          The identity verification exception.
+     * @param errorEnum  The error message enumeration.
+     * @param data       Additional data for the error message.
+     * @return An APIError response.
+     */
     public APIError handleIdVException(IdentityException e, Constants.ErrorMessage errorEnum, String... data) {
 
         ErrorResponse errorResponse;
         Response.Status status;
-        // todo
         if (e instanceof OnfidoClientException) {
             status = Response.Status.BAD_REQUEST;
             errorResponse = getErrorBuilder(e, errorEnum, data)
@@ -241,6 +293,14 @@ public class OnfidoIdvService {
         return new APIError(status, errorResponse);
     }
 
+    /**
+     * Constructs an error response builder for identity verification exceptions.
+     *
+     * @param exception  The identity verification exception.
+     * @param errorEnum  The error message enumeration.
+     * @param data       Additional data for the error message.
+     * @return An ErrorResponse.Builder instance.
+     */
     private ErrorResponse.Builder getErrorBuilder(IdentityException exception,
                                                   Constants.ErrorMessage errorEnum, String... data) {
 
@@ -254,6 +314,13 @@ public class OnfidoIdvService {
                 .withDescription(buildErrorDescription(description, data));
     }
 
+    /**
+     * Constructs an error description string using the provided description and data.
+     *
+     * @param description The error description template.
+     * @param data        Additional data for the error description.
+     * @return The constructed error description string.
+     */
     private String buildErrorDescription(String description, String... data) {
 
         if (ArrayUtils.isNotEmpty(data)) {
@@ -275,10 +342,11 @@ public class OnfidoIdvService {
     }
 
     /**
-     * Return error builder.
+     * Constructs an error response builder for API errors.
      *
-     * @param errorMsg Error Message information.
-     * @return ErrorResponse.Builder.
+     * @param errorMsg The error message enumeration.
+     * @param data     Additional context data.
+     * @return An ErrorResponse.Builder instance.
      */
     private ErrorResponse.Builder getErrorBuilder(Constants.ErrorMessage errorMsg, String data) {
 
@@ -289,11 +357,11 @@ public class OnfidoIdvService {
     }
 
     /**
-     * Include context data to error message.
+     * Includes context data in the error message description.
      *
-     * @param error Error message.
-     * @param data  Context data.
-     * @return Formatted error message.
+     * @param error The error message enumeration.
+     * @param data  The context data.
+     * @return The formatted error message description.
      */
     private String includeData(Constants.ErrorMessage error, String data) {
 
@@ -301,6 +369,41 @@ public class OnfidoIdvService {
             return String.format(error.getDescription(), data);
         } else {
             return error.getDescription();
+        }
+    }
+
+    /**
+     * Validates the resource type and action received in the verification request.
+     * Throws an OnfidoClientException if the resource type or action is unsupported.
+     *
+     * @param resourceType The type of the resource to be verified.
+     * @param action       The action associated with the verification request.
+     * @throws OnfidoClientException if the resource type or action is unsupported.
+     */
+    private void validateResourceTypeAndAction(String resourceType, String action) throws OnfidoClientException {
+        if (!RESOURCE_WORKFLOW_RUN.equals(resourceType) || !ACTION_WORKFLOW_RUN_COMPLETED.equals(action)) {
+            throw new OnfidoClientException(ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION.getCode(),
+                    ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION.getMessage());
+        }
+    }
+
+    /**
+     * Updates the verification status of the ID verification claims based on the Onfido verification status.
+     * Sets the verification status to true if the Onfido status is approved, otherwise sets it to false.
+     * Also updates the metadata of the ID verification claims with the new status.
+     *
+     * @param idVClaims  An array of ID verification claims to be updated.
+     * @param isVerified The verification status to be set.
+     * @param status     The Onfido verification status.
+     */
+    private void updateIdVClaims(IdVClaim[] idVClaims, boolean isVerified, OnfidoConstants.VerificationStatus status) {
+        for (IdVClaim idVClaim : idVClaims) {
+            if (idVClaim != null) {
+                idVClaim.setIsVerified(isVerified);
+                if (idVClaim.getMetadata() != null && idVClaim.getMetadata().containsKey(STATUS)) {
+                    idVClaim.getMetadata().replace(STATUS, status.getStatus());
+                }
+            }
         }
     }
 }
