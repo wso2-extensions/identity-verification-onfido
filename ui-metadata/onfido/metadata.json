@@ -18,7 +18,7 @@
           "hint": "The webhook token generated via the Onfido dashboard.",
           "label": "Webhook Token",
           "type": "password",
-          "required": false,
+          "required": true,
           "isSecret": true,
           "dataComponentId": "idvp-edit-config-settings-webhook-token",
           "maxLength": 100
@@ -28,7 +28,7 @@
           "displayOrder": 3,
           "hint": "The unique identifier for the Workflow generated via the Onfido dashboard.",
           "label": "Workflow ID",
-          "type": "password",
+          "type": "text",
           "required": true,
           "isSecret": false,
           "dataComponentId": "idvp-edit-config-settings-workflow_id",
