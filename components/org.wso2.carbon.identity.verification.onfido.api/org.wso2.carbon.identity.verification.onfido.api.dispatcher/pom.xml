@@ -52,7 +52,7 @@
                             <directory>src/main/webapp</directory>
                         </resource>
                     </webResources>
-                    <warName>onfido#idv</warName>
+                    <warName>idv#onfido</warName>
                     <attachClasses>true</attachClasses>
                 </configuration>
             </plugin>

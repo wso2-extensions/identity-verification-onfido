@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.common;
 
-import org.apache.log4j.MDC;
+import org.slf4j.MDC;
 
 import java.util.UUID;
 
