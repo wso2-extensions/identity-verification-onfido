@@ -42,16 +42,16 @@ public class Constants {
                 "Error retrieving tenant.",
                 "Error occurred while retrieving tenant id for the tenant domain: %s."),
         ERROR_CHECK_VERIFICATION("65002",
-                "Error performing verification check.",
-                "Error occurred while performing verification check."),
-        ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA("65003",
-                "Error retrieving IDV claims by metadata.",
-                "Error occurred while retrieving IDV claims by metadata."),
+                "Error performing identity verification status check.",
+                "Error occurred while performing identity verification status check."),
+        ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS("65003",
+                "Error updating IDV claims verification status.",
+                "Error occurred while updating IDV claims verification status."),
 
-        //Client errors
-        ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("65004",
-                 "Bad request : Received either an unsupported resource type or action.",
-                 "Supported values are resource_type: 'workflow_run' and action: 'workflow_run.completed'.");
+        // Client errors.
+        ERROR_INVALID_REQUEST("60001",
+                "The request could not be processed due to invalid input.",
+                "The request contains invalid input. This may be due to an invalid identity verification provider ID (provided as a path parameter), or unsupported resource type or action.");
 
         private final String code;
         private final String message;

@@ -37,6 +37,7 @@ paths:
           schema:
             type: string
           required: true
+          description: SHA2 signature header for verification
         - name: idvp-id
           in: path
           description: Id of the identity verification provider
@@ -100,23 +101,31 @@ components:
             resource_type:
               type: string
               example: "workflow_run"
+              description: "The resource type affected by the event executed from Onfido"
             action:
               type: string
               example: "workflow_run.completed"
+              description: "The event that triggered this webhook"
             object:
               type: object
               properties:
                 id:
                   type: string
-                  example: "1d74df5a-00c2-45b0-8519-cd0076aca3c1"
+                  example: "36a56899-d617-4988-85bf-b76640861bf5"
+                  description: "Unique identifier of the workflow run object created by Onfido"
                 status:
                   type: string
-                  example: "complete"
+                  example: "approved"
+                  description: "The verification status of the workflow run"
                 completed_at_iso8601:
                   type: string
                   format: date-time
+                  example: "2022-12-19T16:54:44Z"
+                  description: "The date and time when the event was triggered"
                 href:
                   type: string
+                  example: "https://api.onfido.com/v3.6/workflow_runs/36a56899-d617-4988-85bf-b76640861bf5"
+                  description: "Link to the workflow object"
       required:
         - identityVerificationProvider
         - properties

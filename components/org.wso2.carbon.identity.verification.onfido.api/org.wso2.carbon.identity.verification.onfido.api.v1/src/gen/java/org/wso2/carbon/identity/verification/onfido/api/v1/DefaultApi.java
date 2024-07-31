@@ -57,7 +57,7 @@ public class DefaultApi  {
         @ApiResponse(code = 404, message = "Not Found", response = Error.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response verify(    @Valid @NotNull(message = "Property  cannot be null.")  @ApiParam(value = "" ,required=true)@HeaderParam("X-SHA2-Signature") String xSHA2Signature, @ApiParam(value = "Id of the identity verification provider",required=true) @PathParam("idvp-id") String idvpId, @ApiParam(value = "Verify an identity" ) @Valid VerifyRequest verifyRequest) {
+    public Response verify(    @Valid @NotNull(message = "Property  cannot be null.")  @ApiParam(value = "SHA2 signature header for verification" ,required=true)@HeaderParam("X-SHA2-Signature") String xSHA2Signature, @ApiParam(value = "Id of the identity verification provider",required=true) @PathParam("idvp-id") String idvpId, @ApiParam(value = "Verify an identity" ) @Valid VerifyRequest verifyRequest) {
 
         return delegate.verify(xSHA2Signature,  idvpId,  verifyRequest );
     }

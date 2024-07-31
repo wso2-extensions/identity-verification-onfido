@@ -39,6 +39,7 @@ public class VerifyRequestPayloadObject  {
     private String href;
 
     /**
+    * Unique identifier of the workflow run object created by Onfido
     **/
     public VerifyRequestPayloadObject id(String id) {
 
@@ -46,7 +47,7 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(example = "1d74df5a-00c2-45b0-8519-cd0076aca3c1", value = "")
+    @ApiModelProperty(example = "36a56899-d617-4988-85bf-b76640861bf5", value = "Unique identifier of the workflow run object created by Onfido")
     @JsonProperty("id")
     @Valid
     public String getId() {
@@ -57,6 +58,7 @@ public class VerifyRequestPayloadObject  {
     }
 
     /**
+    * The verification status of the workflow run
     **/
     public VerifyRequestPayloadObject status(String status) {
 
@@ -64,7 +66,7 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(example = "complete", value = "")
+    @ApiModelProperty(example = "approved", value = "The verification status of the workflow run")
     @JsonProperty("status")
     @Valid
     public String getStatus() {
@@ -75,6 +77,7 @@ public class VerifyRequestPayloadObject  {
     }
 
     /**
+    * The date and time when the event was triggered
     **/
     public VerifyRequestPayloadObject completedAtIso8601(OffsetDateTime completedAtIso8601) {
 
@@ -82,7 +85,7 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(example = "2022-12-19T16:54:44Z", value = "The date and time when the event was triggered")
     @JsonProperty("completed_at_iso8601")
     @Valid
     public OffsetDateTime getCompletedAtIso8601() {
@@ -93,6 +96,7 @@ public class VerifyRequestPayloadObject  {
     }
 
     /**
+    * Link to the workflow object
     **/
     public VerifyRequestPayloadObject href(String href) {
 
@@ -100,7 +104,7 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(example = "https://api.onfido.com/v3.6/workflow_runs/36a56899-d617-4988-85bf-b76640861bf5", value = "Link to the workflow object")
     @JsonProperty("href")
     @Valid
     public String getHref() {

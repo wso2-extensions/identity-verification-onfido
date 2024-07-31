@@ -52,17 +52,20 @@ import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ACTION_WORKFLOW_RUN_COMPLETED;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_CHECK_VERIFICATION;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_INVALID_REQUEST;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_RESOLVING_IDVP;
-import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA;
-import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.RESOURCE_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_IDV_PROVIDER;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE_VALIDATION;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WEBHOOK_TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ID;
 
 /**
@@ -88,11 +91,15 @@ public class OnfidoIdvService {
 
             String resourceType = verifyRequest.getPayload().getResourceType();
             String action = verifyRequest.getPayload().getAction();
-
             validateResourceTypeAndAction(resourceType, action);
 
             IdVProvider idVProvider =
                     OnfidoIdvServiceHolder.getIdVProviderManager().getIdVProvider(idvpId, tenantId);
+            if (idVProvider == null || !idVProvider.isEnabled()) {
+                throw new OnfidoClientException(ERROR_RETRIEVING_IDV_PROVIDER.getCode(),
+                        ERROR_RETRIEVING_IDV_PROVIDER.getMessage());
+            }
+
             Map<String, String> idVProviderConfigProperties = getIdVConfigPropertyMap(idVProvider);
             validateIdVProviderConfigProperties(idVProviderConfigProperties);
 
@@ -103,19 +110,16 @@ public class OnfidoIdvService {
             OnfidoConstants.VerificationStatus status =
                     OnfidoConstants.VerificationStatus.fromString(verifyRequest.getPayload().getObject().getStatus());
 
-            IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager().
-                    getIdVClaimsByMetadata(WORKFLOW_RUN_ID, workFlowRunId, idvpId, tenantId);
-            boolean isVerified = (status == OnfidoConstants.VerificationStatus.APPROVED);
-            updateIdVClaims(idVClaims, isVerified, status);
+            updateIdVClaims(workFlowRunId, idvpId, tenantId, status);
 
         } catch (IdVProviderMgtException e) {
             throw handleIdVException(e, ERROR_RESOLVING_IDVP, idvpId);
         } catch (OnfidoServerException e) {
             throw handleIdVException(e, ERROR_CHECK_VERIFICATION, idvpId);
+        }catch (OnfidoClientException e) {
+            throw handleIdVException(e, ERROR_INVALID_REQUEST);
         } catch (IdentityVerificationException e) {
-            throw handleIdVException(e, ERROR_RETRIEVING_IDV_CLAIM_BY_METADATA, idvpId);
-        } catch (OnfidoClientException e) {
-            throw handleIdVException (e, ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION);
+            throw handleIdVException(e, ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS, idvpId);
         }
     }
 
@@ -165,7 +169,8 @@ public class OnfidoIdvService {
         if (idVProviderConfigProperties == null || idVProviderConfigProperties.isEmpty() ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(TOKEN)) ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(BASE_URL)) ||
-                StringUtils.isBlank(idVProviderConfigProperties.get(WEBHOOK_TOKEN))) {
+                StringUtils.isBlank(idVProviderConfigProperties.get(WEBHOOK_TOKEN)) ||
+                StringUtils.isBlank(idVProviderConfigProperties.get(WORKFLOW_ID))) {
 
             throw new OnfidoServerException(ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getCode(),
                     ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getMessage());
@@ -381,6 +386,7 @@ public class OnfidoIdvService {
      * @throws OnfidoClientException if the resource type or action is unsupported.
      */
     private void validateResourceTypeAndAction(String resourceType, String action) throws OnfidoClientException {
+
         if (!RESOURCE_WORKFLOW_RUN.equals(resourceType) || !ACTION_WORKFLOW_RUN_COMPLETED.equals(action)) {
             throw new OnfidoClientException(ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION.getCode(),
                     ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION.getMessage());
@@ -388,21 +394,32 @@ public class OnfidoIdvService {
     }
 
     /**
-     * Updates the verification status of the ID verification claims based on the Onfido verification status.
-     * Sets the verification status to true if the Onfido status is approved, otherwise sets it to false.
-     * Also updates the metadata of the ID verification claims with the new status.
+     * Retrieves, processes, and updates identity verification claims based on the provided workflow run ID.
      *
-     * @param idVClaims  An array of ID verification claims to be updated.
-     * @param isVerified The verification status to be set.
-     * @param status     The Onfido verification status.
+     * @param workFlowRunId The unique identifier for the workflow run associated with the ID verification claims.
+     * @param idvpId        The identity verification provider ID.
+     * @param tenantId      The tenant ID.
+     * @param status        The Onfido verification status.
+     * @throws IdentityVerificationException If an error occurs while processing or updating the ID verification claims.
      */
-    private void updateIdVClaims(IdVClaim[] idVClaims, boolean isVerified, OnfidoConstants.VerificationStatus status) {
+    private void updateIdVClaims(String workFlowRunId, String idvpId, int tenantId, OnfidoConstants.VerificationStatus status)
+            throws IdentityVerificationException {
+
+        boolean isVerified = (status == OnfidoConstants.VerificationStatus.APPROVED);
+
+        // Retrieve ID verification claims based on metadata
+        IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager()
+                .getIdVClaimsByMetadata(WORKFLOW_RUN_ID, workFlowRunId, idvpId, tenantId);
+
+        // Process and update each ID verification claim
         for (IdVClaim idVClaim : idVClaims) {
             if (idVClaim != null) {
                 idVClaim.setIsVerified(isVerified);
                 if (idVClaim.getMetadata() != null && idVClaim.getMetadata().containsKey(STATUS)) {
                     idVClaim.getMetadata().replace(STATUS, status.getStatus());
                 }
+                // Update the ID verification claim in the database
+                OnfidoIdvServiceHolder.getIdentityVerificationManager().updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
             }
         }
     }

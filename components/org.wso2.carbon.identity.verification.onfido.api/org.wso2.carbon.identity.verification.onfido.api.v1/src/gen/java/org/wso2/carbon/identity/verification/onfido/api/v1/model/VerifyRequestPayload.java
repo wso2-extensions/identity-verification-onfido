@@ -38,6 +38,7 @@ public class VerifyRequestPayload  {
     private VerifyRequestPayloadObject _object;
 
     /**
+    * The resource type affected by the event executed from Onfido
     **/
     public VerifyRequestPayload resourceType(String resourceType) {
 
@@ -45,9 +46,8 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "check", value = "")
+    @ApiModelProperty(example = "workflow_run", value = "The resource type affected by the event executed from Onfido")
     @JsonProperty("resource_type")
-    @Valid
     public String getResourceType() {
         return resourceType;
     }
@@ -56,6 +56,7 @@ public class VerifyRequestPayload  {
     }
 
     /**
+    * The event that triggered this webhook
     **/
     public VerifyRequestPayload action(String action) {
 
@@ -63,9 +64,8 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "check.completed", value = "")
+    @ApiModelProperty(example = "workflow_run.completed", value = "The event that triggered this webhook")
     @JsonProperty("action")
-    @Valid
     public String getAction() {
         return action;
     }
@@ -83,7 +83,6 @@ public class VerifyRequestPayload  {
     
     @ApiModelProperty(value = "")
     @JsonProperty("object")
-    @Valid
     public VerifyRequestPayloadObject getObject() {
         return _object;
     }

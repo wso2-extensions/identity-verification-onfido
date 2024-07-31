@@ -37,12 +37,10 @@ public class OnfidoConstants {
     public static final String WEBHOOK_TOKEN = "webhook_token";
     public static final String INITIATED = "INITIATED";
     public static final String COMPLETED = "COMPLETED";
-    public static final String IN_PROGRESS = "IN_PROGRESS";
     public static final String BASE_URL = "base_url";
     public static final String ID = "id";
     public static final String TOKEN_HEADER = "Token token=";
     public static final String APPLICATION_JSON = "application/json";
-    public static final String REPORT_NAMES = "report_names";
     public static final String APPLICANTS_ENDPOINT = "/applicants";
     public static final String SDK_TOKEN_ENDPOINT = "/sdk_token";
     public static final String WORKFLOW_RUN_ENDPOINT = "/workflow_runs";
@@ -79,8 +77,10 @@ public class OnfidoConstants {
         ERROR_GETTING_ONFIDO_VERIFICATION_STATUS("10014", "Error while retrieving the Onfido verification status."),
         ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10015",
                 "IdVProvider configuration properties are empty."),
-        ERROR_SIGNATURE_VALIDATION("10016", "Error occuured while validating the signature."),
-        ERROR_INVALID_VERIFICATION_STATUS("10017", "Unknown verificaation status provided.");
+        ERROR_SIGNATURE_VALIDATION("10016", "Error occurred while validating the signature."),
+        ERROR_INVALID_VERIFICATION_STATUS("10017", "Unknown verification status provided."),
+        ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("10018", "Unsupported resource type or action: only resource_type 'workflow_run' and action 'workflow_run.completed' are supported.");
+
 
         private final String code;
         private final String message;
