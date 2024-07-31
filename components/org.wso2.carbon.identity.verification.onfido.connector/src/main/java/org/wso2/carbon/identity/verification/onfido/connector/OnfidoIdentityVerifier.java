@@ -59,10 +59,10 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_STATUS_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.INITIATED;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.REPORT_NAMES;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.SDK_TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WEBHOOK_TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ID;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_NON_EXISTING_USER;
@@ -254,7 +254,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(APPLICANT_ID, applicantId);
         metadata.put(WORKFLOW_RUN_ID, workflowRunId);
-        metadata.put(STATUS, INITIATED);
+        metadata.put(STATUS, OnfidoConstants.VerificationStatus.AWAITING_INPUT.getStatus());
         return metadata;
     }
 
@@ -336,6 +336,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         if (idVProviderConfigProperties == null || idVProviderConfigProperties.isEmpty() ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(TOKEN)) ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(BASE_URL)) ||
+                StringUtils.isBlank(idVProviderConfigProperties.get(WEBHOOK_TOKEN)) ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(WORKFLOW_ID))) {
 
             throw new IdentityVerificationServerException(ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getCode(),
