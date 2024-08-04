@@ -33,6 +33,7 @@
           class="org.apache.cxf.jaxrs.validation.JAXRSBeanValidationInInterceptor">
         <property name="provider" ref="validationProvider"/>
     </bean>
+    <bean id="rawRequestBodyInterceptor" class="org.wso2.carbon.identity.verification.onfido.api.v1.interceptors.RawRequestBodyInterceptor"/>
 
     <jaxrs:server id="onfido" address="/v1">
         <jaxrs:serviceBeans>
@@ -52,6 +53,7 @@
             <bean class="org.wso2.carbon.identity.verification.onfido.api.dispatcher.APIErrorExceptionMapper"/>
         </jaxrs:providers>
         <jaxrs:inInterceptors>
+            <ref bean="rawRequestBodyInterceptor"/>
             <ref bean="validationInInterceptor"/>
         </jaxrs:inInterceptors>
     </jaxrs:server>

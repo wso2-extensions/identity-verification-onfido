@@ -126,6 +126,9 @@ components:
                   type: string
                   example: "https://api.onfido.com/v3.6/workflow_runs/36a56899-d617-4988-85bf-b76640861bf5"
                   description: "Link to the workflow object"
+            resource:
+              type: object
+              description: Represents a resource related to the Onfido workflow run.
       required:
         - identityVerificationProvider
         - properties

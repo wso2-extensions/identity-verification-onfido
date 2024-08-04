@@ -36,6 +36,7 @@ public class VerifyRequestPayload  {
     private String resourceType;
     private String action;
     private VerifyRequestPayloadObject _object;
+    private Object resource;
 
     /**
     * The resource type affected by the event executed from Onfido
@@ -48,6 +49,7 @@ public class VerifyRequestPayload  {
     
     @ApiModelProperty(example = "workflow_run", value = "The resource type affected by the event executed from Onfido")
     @JsonProperty("resource_type")
+    @Valid
     public String getResourceType() {
         return resourceType;
     }
@@ -66,6 +68,7 @@ public class VerifyRequestPayload  {
     
     @ApiModelProperty(example = "workflow_run.completed", value = "The event that triggered this webhook")
     @JsonProperty("action")
+    @Valid
     public String getAction() {
         return action;
     }
@@ -83,11 +86,31 @@ public class VerifyRequestPayload  {
     
     @ApiModelProperty(value = "")
     @JsonProperty("object")
+    @Valid
     public VerifyRequestPayloadObject getObject() {
         return _object;
     }
     public void setObject(VerifyRequestPayloadObject _object) {
         this._object = _object;
+    }
+
+    /**
+    * Represents a resource related to the Onfido workflow run.
+    **/
+    public VerifyRequestPayload resource(Object resource) {
+
+        this.resource = resource;
+        return this;
+    }
+    
+    @ApiModelProperty(value = "Represents a resource related to the Onfido workflow run.")
+    @JsonProperty("resource")
+    @Valid
+    public Object getResource() {
+        return resource;
+    }
+    public void setResource(Object resource) {
+        this.resource = resource;
     }
 
 
@@ -104,12 +127,13 @@ public class VerifyRequestPayload  {
         VerifyRequestPayload verifyRequestPayload = (VerifyRequestPayload) o;
         return Objects.equals(this.resourceType, verifyRequestPayload.resourceType) &&
             Objects.equals(this.action, verifyRequestPayload.action) &&
-            Objects.equals(this._object, verifyRequestPayload._object);
+            Objects.equals(this._object, verifyRequestPayload._object) &&
+            Objects.equals(this.resource, verifyRequestPayload.resource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(resourceType, action, _object);
+        return Objects.hash(resourceType, action, _object, resource);
     }
 
     @Override
@@ -121,6 +145,7 @@ public class VerifyRequestPayload  {
         sb.append("    resourceType: ").append(toIndentedString(resourceType)).append("\n");
         sb.append("    action: ").append(toIndentedString(action)).append("\n");
         sb.append("    _object: ").append(toIndentedString(_object)).append("\n");
+        sb.append("    resource: ").append(toIndentedString(resource)).append("\n");
         sb.append("}");
         return sb.toString();
     }

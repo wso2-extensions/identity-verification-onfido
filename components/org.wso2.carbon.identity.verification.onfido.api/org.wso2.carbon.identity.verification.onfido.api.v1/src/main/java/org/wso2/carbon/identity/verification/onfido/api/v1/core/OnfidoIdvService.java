@@ -67,6 +67,7 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WEBHOOK_TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ID;
+import org.wso2.carbon.identity.verification.onfido.api.v1.interceptors.RawRequestBodyInterceptor;
 
 /**
  * Onfido Identity Verification Service implementation to be notified when he verification is completed.
@@ -89,6 +90,9 @@ public class OnfidoIdvService {
         int tenantId = getTenantId();
         try {
 
+            // Access the raw request body
+            String rawRequestBody = RawRequestBodyInterceptor.getRawRequestBody();
+
             String resourceType = verifyRequest.getPayload().getResourceType();
             String action = verifyRequest.getPayload().getAction();
             validateResourceTypeAndAction(resourceType, action);
@@ -99,12 +103,11 @@ public class OnfidoIdvService {
                 throw new OnfidoClientException(ERROR_RETRIEVING_IDV_PROVIDER.getCode(),
                         ERROR_RETRIEVING_IDV_PROVIDER.getMessage());
             }
-
             Map<String, String> idVProviderConfigProperties = getIdVConfigPropertyMap(idVProvider);
             validateIdVProviderConfigProperties(idVProviderConfigProperties);
 
             // Validate the signature available in the header with the webhook token.
-            validateSignature(xSHA2Signature, idVProviderConfigProperties, verifyRequest);
+            validateSignature(xSHA2Signature, idVProviderConfigProperties, rawRequestBody);
 
             String workFlowRunId = verifyRequest.getPayload().getObject().getId();
             OnfidoConstants.VerificationStatus status =
@@ -120,6 +123,8 @@ public class OnfidoIdvService {
             throw handleIdVException(e, ERROR_INVALID_REQUEST);
         } catch (IdentityVerificationException e) {
             throw handleIdVException(e, ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS, idvpId);
+        } finally {
+            RawRequestBodyInterceptor.clear();
         }
     }
 
@@ -182,11 +187,11 @@ public class OnfidoIdvService {
      *
      * @param xSHA2Signature                The SHA-2 signature from the Onfido webhook.
      * @param idVProviderConfigProperties   The configuration properties of the Identity Verification Provider.
-     * @param verifyRequest                 The verification request payload from Onfido.
+     * @param rawRequestBody                 The raw verification request payload from Onfido.
      * @throws OnfidoServerException If the signature validation fails.
      */
     private void validateSignature(String xSHA2Signature, Map<String, String> idVProviderConfigProperties,
-                                   VerifyRequest verifyRequest) throws OnfidoServerException {
+                                   String rawRequestBody) throws OnfidoServerException {
 
         try {
             if (StringUtils.isBlank(xSHA2Signature)) {
@@ -194,10 +199,9 @@ public class OnfidoIdvService {
             }
 
             String webhookToken = idVProviderConfigProperties.get(WEBHOOK_TOKEN);
-            String verificationRequest = verifyRequest.toString();
 
             // Compute the HMAC using the SHA256 algorithm and your webhook's token as the key.
-            String expectedSignature = computeHmacSHA256(webhookToken, verificationRequest);
+            String expectedSignature = computeHmacSHA256(webhookToken, rawRequestBody);
 
             // Make sure signatures are both in binary or both in hexadecimal before comparing.
             byte[] signatureHeader = decodeHexadecimal(xSHA2Signature);
