@@ -34,24 +34,43 @@ public class Constants {
      */
     public enum ErrorMessage {
 
-        // Server errors.
-        ERROR_RESOLVING_IDVP("65000",
-                "Error resolving identity verification provider.",
-                "Error occurred while resolving the identity verification provider: %s."),
-        ERROR_RETRIEVING_TENANT("65001",
-                "Error retrieving tenant.",
-                "Error occurred while retrieving tenant id for the tenant domain: %s."),
-        ERROR_CHECK_VERIFICATION("65002",
-                "Error performing identity verification status check.",
-                "Error occurred while performing identity verification status check."),
-        ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS("65003",
-                "Error updating IDV claims verification status.",
-                "Error occurred while updating IDV claims verification status."),
+        // Server errors
+        SERVER_ERROR_RESOLVING_IDVP("65000",
+                "Identity verification provider retrieval failed.",
+                "An error occurred while attempting to resolve the identity verification provider."),
+        SERVER_ERROR_RETRIEVING_TENANT("65001",
+                "Tenant retrieval failed.",
+                "The system encountered an error while retrieving the tenant ID for the tenant domain: %s."),
+        SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS("65002",
+                "Updating identity verification claims failed.",
+                "An error occurred while updating the identity verification claims status."),
+        SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID("65003",
+                "Invalid OnFido configuration properties.",
+                "One or more OnFido identity verification provider configuration properties are invalid or missing."),
+        SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE("65004",
+                "Error during signature validation.",
+                "An error occurred while validating the request signature."),
+        SERVER_ERROR_GENERAL_ERROR("65005",
+                "Internal server error.",
+                "An unexpected error occurred while processing the request."),
+        SERVER_ERROR_INVALID_VERIFICATION_STATUS("65006",
+                "Invalid Onfido verification status provided.",
+                "An error occurred due to an invalid Onfido verification status being provided in the request."),
 
-        // Client errors.
-        ERROR_INVALID_REQUEST("60001",
-                "The request could not be processed due to invalid input.",
-                "The request contains invalid input. This may be due to an invalid identity verification provider ID (provided as a path parameter), or unsupported resource type or action.");
+
+        // Client errors
+        CLIENT_ERROR_RESOLVING_IDVP("60000",
+                "Identity verification provider retrieval failed.",
+                "The identity verification provider ID in the URL could not be resolved. It may be unavailable or disabled."),
+        CLIENT_ERROR_SIGNATURE_MISMATCH("60001",
+                "Invalid request signature.",
+                "The request contains an invalid signature, indicating potential unauthorized access or data tampering."),
+        CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("60002",
+                "Unsupported resource type or action.",
+                "The request contains an unsupported resource type or action. Only 'workflow_run' resource type and 'workflow_run.completed' action are supported."),
+        CLIENT_ERROR_INVALID_REQUEST("60003",
+                "Invalid request payload.",
+                "The request payload contains invalid input, such as an invalid workflow run ID.");
 
         private final String code;
         private final String message;

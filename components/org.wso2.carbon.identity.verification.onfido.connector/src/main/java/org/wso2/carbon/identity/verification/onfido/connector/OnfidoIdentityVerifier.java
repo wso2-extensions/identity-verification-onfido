@@ -54,7 +54,7 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_IDV_PROVIDER;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_ALREADY_INITIATED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_STATUS_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ID;
@@ -81,8 +81,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         // Get corresponding IdV Provider.
         IdVProvider idVProvider = getIdVProvider(identityVerifierData, tenantId);
         if (idVProvider == null || !idVProvider.isEnabled()) {
-            throw new IdentityVerificationClientException(ERROR_RETRIEVING_IDV_PROVIDER.getCode(),
-                    ERROR_RETRIEVING_IDV_PROVIDER.getMessage());
+            throw new IdentityVerificationClientException(ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getCode(),
+                    ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getMessage());
         }
 
         // Get IdV Properties that are sent through identity verification request.
