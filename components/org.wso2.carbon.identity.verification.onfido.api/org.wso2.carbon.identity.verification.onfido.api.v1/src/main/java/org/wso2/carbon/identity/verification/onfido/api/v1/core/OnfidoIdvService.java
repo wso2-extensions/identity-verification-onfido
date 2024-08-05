@@ -41,9 +41,7 @@ import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoCl
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,7 +106,7 @@ public class OnfidoIdvService {
             IdVProvider idVProvider = getIdVProvider(idvpId, tenantId);
             Map<String, String> idVProviderConfigProperties = getIdVConfigPropertyMap(idVProvider);
 
-//            validateSignature(xSHA2Signature, idVProviderConfigProperties, rawRequestBody);
+            validateSignature(xSHA2Signature, idVProviderConfigProperties, rawRequestBody);
 
             updateIdVClaims(verifyRequest.getPayload().getObject().getId(), idvpId, tenantId,
                     OnfidoConstants.VerificationStatus.fromString(verifyRequest.getPayload().getObject().getStatus()));
@@ -202,6 +200,7 @@ public class OnfidoIdvService {
 
     /**
      * Validates the signature provided in the webhook request against the expected signature.
+     * Implementation logic extracted from https://github.com/onfido/onfido-java/blob/2466de99b6036a8e72186e52bbd5e66e3779223d/src/main/java/com/onfido/WebhookEventVerifier.java#L81
      *
      * @param xSHA2Signature              The SHA-2 signature from the Onfido webhook.
      * @param idVProviderConfigProperties The configuration properties of the Identity Verification Provider.
@@ -212,28 +211,59 @@ public class OnfidoIdvService {
     private void validateSignature(String xSHA2Signature, Map<String, String> idVProviderConfigProperties,
                                    String rawRequestBody) throws OnfidoClientException, OnfidoServerException {
 
-        try {
-            if (StringUtils.isBlank(xSHA2Signature)) {
-                throw new OnfidoClientException(ERROR_SIGNATURE.getCode(), ERROR_SIGNATURE.getMessage());
-            }
 
-            String webhookToken = idVProviderConfigProperties.get(WEBHOOK_TOKEN);
-
-            // Compute the HMAC using the SHA256 algorithm and your webhook's token as the key.
-            String expectedSignature = computeHmacSHA256(webhookToken, rawRequestBody);
-
-            // Make sure signatures are both in binary or both in hexadecimal before comparing.
-            byte[] signatureHeader = decodeHexadecimal(xSHA2Signature);
-
-            // Use a constant time equality function to prevent timing attacks.
-            if (!constantTimeEquals(signatureHeader, expectedSignature.getBytes())) {
-                throw new OnfidoClientException(ERROR_SIGNATURE_VALIDATION.getCode(),
-                        ERROR_SIGNATURE_VALIDATION.getMessage());
-            }
-        } catch (SignatureException e) {
-            throw new OnfidoServerException(ERROR_SIGNATURE_VALIDATION_PROCESSING.getCode(),
-                    ERROR_SIGNATURE_VALIDATION_PROCESSING.getMessage());
+        if (StringUtils.isBlank(xSHA2Signature)) {
+            throw new OnfidoClientException(ERROR_SIGNATURE.getCode(), ERROR_SIGNATURE.getMessage());
         }
+
+        String webhookToken = idVProviderConfigProperties.get(WEBHOOK_TOKEN);
+
+        Mac sha256Hmac;
+        SecretKeySpec secretKey;
+        try {
+            sha256Hmac = Mac.getInstance("HmacSHA256");
+            secretKey = new SecretKeySpec(webhookToken.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            sha256Hmac.init(secretKey);
+        } catch (Exception ex) {
+            throw new OnfidoServerException(ERROR_SIGNATURE_VALIDATION_PROCESSING.getCode(),
+                    ERROR_SIGNATURE_VALIDATION_PROCESSING.getMessage(), ex);
+        }
+
+        // Compute the HMAC SHA-256 of the raw request body
+        String expectedSignature = encodeHexString(sha256Hmac.doFinal(rawRequestBody.getBytes(StandardCharsets.UTF_8)));
+
+        // Perform a time-safe comparison of the signatures
+        if (!MessageDigest.isEqual(expectedSignature.getBytes(), xSHA2Signature.getBytes())) {
+            throw new OnfidoClientException(ERROR_SIGNATURE_VALIDATION.getCode(),
+                    ERROR_SIGNATURE_VALIDATION.getMessage());
+        }
+    }
+
+    /**
+     * Encodes a byte array into a hexadecimal string.
+     *
+     * @param byteArray The byte array to encode.
+     * @return The hexadecimal string representation of the byte array.
+     */
+    private String encodeHexString(byte[] byteArray) {
+        StringBuilder hexStringBuffer = new StringBuilder();
+        for (byte b : byteArray) {
+            hexStringBuffer.append(byteToHex(b));
+        }
+        return hexStringBuffer.toString();
+    }
+
+    /**
+     * Converts a byte into a hexadecimal string.
+     *
+     * @param num The byte to convert.
+     * @return The hexadecimal string representation of the byte.
+     */
+    private String byteToHex(byte num) {
+        char[] hexDigits = new char[2];
+        hexDigits[0] = Character.forDigit((num >> 4) & 0xF, 16);
+        hexDigits[1] = Character.forDigit((num & 0xF), 16);
+        return new String(hexDigits);
     }
 
     /**
@@ -410,66 +440,5 @@ public class OnfidoIdvService {
     private String buildErrorDescription(String description, String... data) {
 
         return ArrayUtils.isNotEmpty(data) ? String.format(description, (Object[]) data) : description;
-    }
-
-    /**
-     * Computes the HMAC SHA-256 hash of a given value using the provided key.
-     *
-     * @param key   The key to use for HMAC computation.
-     * @param value The value to hash.
-     * @return The computed HMAC SHA-256 hash.
-     * @throws SignatureException If an error occurs during HMAC computation.
-     */
-    private static String computeHmacSHA256(String key, String value) throws SignatureException {
-
-        String result;
-        try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
-            result = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(rawHmac);
-        } catch (NoSuchAlgorithmException e) {
-            throw new SignatureException("Invalid algorithm provided while calculating HMAC signature.", e);
-        } catch (InvalidKeyException e) {
-            throw new SignatureException("Failed to calculate HMAC signature.", e);
-        }
-        return result;
-    }
-
-    /**
-     * Decodes a hexadecimal string into a byte array.
-     *
-     * @param hexadecimalString The hexadecimal string to decode.
-     * @return The decoded byte array.
-     */
-    private static byte[] decodeHexadecimal(String hexadecimalString) {
-
-        int len = hexadecimalString.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hexadecimalString.charAt(i), 16) << 4)
-                    + Character.digit(hexadecimalString.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
-    /**
-     * Compares two byte arrays in constant time to prevent timing attacks.
-     *
-     * @param a The first byte array.
-     * @param b The second byte array.
-     * @return True if the byte arrays are equal, false otherwise.
-     */
-    private static boolean constantTimeEquals(byte[] a, byte[] b) {
-
-        if (a.length != b.length) {
-            return false;
-        }
-        int result = 0;
-        for (int i = 0; i < a.length; i++) {
-            result |= a[i] ^ b[i];
-        }
-        return result == 0;
     }
 }
