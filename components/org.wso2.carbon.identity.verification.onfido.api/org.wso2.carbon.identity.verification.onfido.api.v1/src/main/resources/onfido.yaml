@@ -119,7 +119,6 @@ components:
                   description: "The verification status of the workflow run"
                 completed_at_iso8601:
                   type: string
-                  format: date-time
                   example: "2022-12-19T16:54:44Z"
                   description: "The date and time when the event was triggered"
                 href:

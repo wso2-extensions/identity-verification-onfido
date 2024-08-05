@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.time.OffsetDateTime;
 import javax.validation.constraints.*;
 
 
@@ -35,7 +34,7 @@ public class VerifyRequestPayloadObject  {
   
     private String id;
     private String status;
-    private OffsetDateTime completedAtIso8601;
+    private String completedAtIso8601;
     private String href;
 
     /**
@@ -79,7 +78,7 @@ public class VerifyRequestPayloadObject  {
     /**
     * The date and time when the event was triggered
     **/
-    public VerifyRequestPayloadObject completedAtIso8601(OffsetDateTime completedAtIso8601) {
+    public VerifyRequestPayloadObject completedAtIso8601(String completedAtIso8601) {
 
         this.completedAtIso8601 = completedAtIso8601;
         return this;
@@ -88,10 +87,10 @@ public class VerifyRequestPayloadObject  {
     @ApiModelProperty(example = "2022-12-19T16:54:44Z", value = "The date and time when the event was triggered")
     @JsonProperty("completed_at_iso8601")
     @Valid
-    public OffsetDateTime getCompletedAtIso8601() {
+    public String getCompletedAtIso8601() {
         return completedAtIso8601;
     }
-    public void setCompletedAtIso8601(OffsetDateTime completedAtIso8601) {
+    public void setCompletedAtIso8601(String completedAtIso8601) {
         this.completedAtIso8601 = completedAtIso8601;
     }
 
