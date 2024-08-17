@@ -46,9 +46,11 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(example = "36a56899-d617-4988-85bf-b76640861bf5", value = "Unique identifier of the workflow run object created by Onfido")
+    @ApiModelProperty(example = "36a56899-d617-4988-85bf-b76640861bf5", required = true, value = "Unique identifier of the workflow run object created by Onfido")
     @JsonProperty("id")
     @Valid
+    @NotNull(message = "Property id cannot be null.")
+
     public String getId() {
         return id;
     }
@@ -65,9 +67,11 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(example = "approved", value = "The verification status of the workflow run")
+    @ApiModelProperty(example = "approved", required = true, value = "The verification status of the workflow run")
     @JsonProperty("status")
     @Valid
+    @NotNull(message = "Property status cannot be null.")
+
     public String getStatus() {
         return status;
     }
@@ -84,9 +88,11 @@ public class VerifyRequestPayloadObject  {
         return this;
     }
     
-    @ApiModelProperty(example = "2022-12-19T16:54:44Z", value = "The date and time when the event was triggered")
+    @ApiModelProperty(example = "2022-12-19T16:54:44Z", required = true, value = "The date and time when the event was triggered")
     @JsonProperty("completed_at_iso8601")
     @Valid
+    @NotNull(message = "Property completedAtIso8601 cannot be null.")
+
     public String getCompletedAtIso8601() {
         return completedAtIso8601;
     }

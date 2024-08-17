@@ -22,6 +22,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequestPayloadObject;
 import javax.validation.constraints.*;
 
@@ -36,7 +39,8 @@ public class VerifyRequestPayload  {
     private String resourceType;
     private String action;
     private VerifyRequestPayloadObject _object;
-    private Object resource;
+    private Map<String, Object> resource = new HashMap<>();
+
 
     /**
     * The resource type affected by the event executed from Onfido
@@ -47,9 +51,11 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "workflow_run", value = "The resource type affected by the event executed from Onfido")
+    @ApiModelProperty(example = "workflow_run", required = true, value = "The resource type affected by the event executed from Onfido")
     @JsonProperty("resource_type")
     @Valid
+    @NotNull(message = "Property resourceType cannot be null.")
+
     public String getResourceType() {
         return resourceType;
     }
@@ -66,9 +72,11 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "workflow_run.completed", value = "The event that triggered this webhook")
+    @ApiModelProperty(example = "workflow_run.completed", required = true, value = "The event that triggered this webhook")
     @JsonProperty("action")
     @Valid
+    @NotNull(message = "Property action cannot be null.")
+
     public String getAction() {
         return action;
     }
@@ -84,9 +92,11 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(required = true, value = "")
     @JsonProperty("object")
     @Valid
+    @NotNull(message = "Property _object cannot be null.")
+
     public VerifyRequestPayloadObject getObject() {
         return _object;
     }
@@ -95,25 +105,32 @@ public class VerifyRequestPayload  {
     }
 
     /**
-    * Represents a resource related to the Onfido workflow run.
     **/
-    public VerifyRequestPayload resource(Object resource) {
+    public VerifyRequestPayload resource(Map<String, Object> resource) {
 
         this.resource = resource;
         return this;
     }
     
-    @ApiModelProperty(value = "Represents a resource related to the Onfido workflow run.")
+    @ApiModelProperty(required = true, value = "")
     @JsonProperty("resource")
     @Valid
-    public Object getResource() {
+    @NotNull(message = "Property resource cannot be null.")
+
+    public Map<String, Object> getResource() {
         return resource;
     }
-    public void setResource(Object resource) {
+    public void setResource(Map<String, Object> resource) {
         this.resource = resource;
     }
 
 
+    public VerifyRequestPayload putResourceItem(String key, Object resourceItem) {
+        this.resource.put(key, resourceItem);
+        return this;
+    }
+
+    
 
     @Override
     public boolean equals(java.lang.Object o) {

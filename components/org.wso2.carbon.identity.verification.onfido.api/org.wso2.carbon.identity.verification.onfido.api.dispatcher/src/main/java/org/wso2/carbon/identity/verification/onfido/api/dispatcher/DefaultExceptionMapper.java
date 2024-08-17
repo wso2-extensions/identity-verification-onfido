@@ -34,7 +34,7 @@ import javax.ws.rs.ext.ExceptionMapper;
  */
 public class DefaultExceptionMapper implements ExceptionMapper<Throwable> {
 
-    public static final String PROCESSING_ERROR_CODE = "IDV-15000";
+    public static final String PROCESSING_ERROR_CODE = "OIDV-65000";
     public static final String PROCESSING_ERROR_MESSAGE = "Unexpected Processing Error";
     public static final String PROCESSING_ERROR_DESCRIPTION = "Server encountered an error while serving the request";
     private static final Log log = LogFactory.getLog(DefaultExceptionMapper.class);

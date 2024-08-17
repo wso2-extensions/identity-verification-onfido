@@ -40,7 +40,7 @@ public class InputValidationExceptionMapper implements ExceptionMapper<Constrain
 
     private static final Log log = LogFactory.getLog(InputValidationExceptionMapper.class);
 
-    private static final String ERROR_CODE = "IDV-15000";
+    private static final String ERROR_CODE = "OIDV-60000";
     private static final String ERROR_MESSAGE = "Invalid Request";
     private static final String ERROR_DESCRIPTION = "Provided request body content is not in the expected format";
 

@@ -317,7 +317,6 @@
         <org.eclipse.osgi.version>3.9.1.v20130814-1242</org.eclipse.osgi.version>
         <jackson-databind.version>2.10.5</jackson-databind.version>
         <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
-        <jackson-dataformat-xml.version>2.10.5</jackson-dataformat-xml.version>
         <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
         <apache.common.collections4.version>4.1</apache.common.collections4.version>
         <pax.logging.version>1.10.1</pax.logging.version>
@@ -342,7 +341,6 @@
         <jackson-jaxrs-json-provider.version>2.13.2</jackson-jaxrs-json-provider.version>
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
         <jackson-dataformat-xml.version>2.13.2</jackson-dataformat-xml.version>
-        <jackson.version>1.9.13</jackson.version>
         <spring-web.version>5.3.25</spring-web.version>
         <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>

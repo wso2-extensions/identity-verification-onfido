@@ -22,7 +22,7 @@ public class Constants {
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
-    public static final String ERROR_PREFIX = "IDVO-";
+    public static final String ERROR_PREFIX = "OIDV-";
     public static final String RESOURCE_WORKFLOW_RUN = "workflow_run";
     public static final String ACTION_WORKFLOW_RUN_COMPLETED = "workflow_run.completed";
 
@@ -35,40 +35,43 @@ public class Constants {
     public enum ErrorMessage {
 
         // Server errors
-        SERVER_ERROR_RESOLVING_IDVP("65000",
+        SERVER_ERROR_RESOLVING_IDVP("65001",
                 "Identity verification provider retrieval failed.",
                 "An error occurred while attempting to resolve the identity verification provider."),
-        SERVER_ERROR_RETRIEVING_TENANT("65001",
+        SERVER_ERROR_RETRIEVING_TENANT("65002",
                 "Tenant retrieval failed.",
                 "The system encountered an error while retrieving the tenant ID for the tenant domain: %s."),
-        SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS("65002",
+        SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS("65003",
                 "Updating identity verification claims failed.",
                 "An error occurred while updating the identity verification claims status."),
-        SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID("65003",
+        SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID("65004",
                 "Invalid OnFido configuration properties.",
                 "One or more OnFido identity verification provider configuration properties are invalid or missing."),
-        SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE("65004",
+        SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE("65005",
                 "Error during signature validation.",
                 "An error occurred while validating the request signature."),
-        SERVER_ERROR_GENERAL_ERROR("65005",
+        SERVER_ERROR_GENERAL_ERROR("65006",
                 "Internal server error.",
                 "An unexpected error occurred while processing the request."),
-        SERVER_ERROR_INVALID_VERIFICATION_STATUS("65006",
-                "Invalid Onfido verification status provided.",
-                "An error occurred due to an invalid Onfido verification status being provided in the request."),
+        SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS("65007",
+                "Invalid Onfido workflow run status provided.",
+                "An error occurred due to an invalid Onfido workflow run status being provided in the request."),
 
 
         // Client errors
-        CLIENT_ERROR_RESOLVING_IDVP("60000",
+        CLIENT_ERROR_RESOLVING_IDVP("60001",
                 "Identity verification provider retrieval failed.",
                 "The identity verification provider ID in the URL could not be resolved. It may be unavailable or disabled."),
-        CLIENT_ERROR_SIGNATURE_MISMATCH("60001",
+        CLIENT_ERROR_SIGNATURE_MISMATCH("60002",
                 "Invalid request signature.",
                 "The request contains an invalid signature, indicating potential unauthorized access or data tampering."),
-        CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("60002",
+        CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("60003",
                 "Unsupported resource type or action.",
                 "The request contains an unsupported resource type or action. Only 'workflow_run' resource type and 'workflow_run.completed' action are supported."),
-        CLIENT_ERROR_INVALID_REQUEST("60003",
+        CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT("60004",
+                "Invalid workflow output.",
+                "The request contains an invalid workflow output format. Ensure that the workflow is configured to include the document report's data comparison results in the output."),
+        CLIENT_ERROR_INVALID_REQUEST("60005",
                 "Invalid request payload.",
                 "The request payload contains invalid input, such as an invalid workflow run ID.");
 

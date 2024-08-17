@@ -35,7 +35,7 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_RESPONSE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_SDK_TOKEN;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_VERIFICATION_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UPDATING_ONFIDO_APPLICANT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.SDK_TOKEN_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.STATUS_VERIFY_ENDPOINT;
@@ -146,14 +146,14 @@ public class OnfidoAPIClient {
     }
 
     /**
-     * This method is used to retrieve the verification status of a workflow run in Onfido.
+     * This method is used to retrieve the status of a workflow run in Onfido.
      *
      * @param idVConfigPropertyMap The map of the configuration properties.
      * @param workflowRunId The ID of the workflow run whose verification status is to be retrieved.
      * @return The verification status of the workflow run as a JSONObject.
      * @throws OnfidoServerException If an error occurs while retrieving the verification status from the Onfido server.
      */
-    public static JSONObject getVerificationStatus(Map<String, String> idVConfigPropertyMap , String workflowRunId)
+    public static JSONObject getWorkflowRunStatus(Map<String, String> idVConfigPropertyMap , String workflowRunId)
             throws OnfidoServerException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
@@ -163,8 +163,8 @@ public class OnfidoAPIClient {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             return getJsonObject(response);
         } else {
-            throw new OnfidoServerException(ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getCode(),
-                    String.format(ERROR_GETTING_ONFIDO_VERIFICATION_STATUS.getMessage(),
+            throw new OnfidoServerException(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getCode(),
+                    String.format(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getMessage(),
                             response.getStatusLine().getStatusCode()));
         }
     }

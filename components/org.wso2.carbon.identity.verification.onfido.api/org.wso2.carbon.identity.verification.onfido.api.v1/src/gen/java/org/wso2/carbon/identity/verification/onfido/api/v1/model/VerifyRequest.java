@@ -43,9 +43,11 @@ public class VerifyRequest  {
         return this;
     }
     
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(required = true, value = "")
     @JsonProperty("payload")
     @Valid
+    @NotNull(message = "Property payload cannot be null.")
+
     public VerifyRequestPayload getPayload() {
         return payload;
     }
