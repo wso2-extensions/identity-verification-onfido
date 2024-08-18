@@ -108,7 +108,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
                     break;
                 case COMPLETED:
                     // Complete the onfido sdk flow by updating the workflow run status.
-                    idVClaims = updateOnfidoWorkflowStatus(userId, identityVerifierData, idVProvider,
+                    idVClaims = completeOnfidoVerification(userId, identityVerifierData, idVProvider,
                             idVProviderConfigProperties, tenantId);
                     break;
                 default:
@@ -210,7 +210,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
     }
 
     /**
-     * Updates the Onfido workflow status for the provided user's identity verification claims.
+     * Completes the Onfido Verification process for a user, reflecting SDK interactions.
+     * This method updates the workflow status according to user activities captured through the SDK interaction.
      *
      * @param userId                      The unique identifier of the user
      * @param identityVerifierData        Contains the data
@@ -220,7 +221,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
      * @return A list of IdVClaims that have their workflow status updated
      * @throws IdentityVerificationException If there's an error during the updating process
      */
-    private List<IdVClaim> updateOnfidoWorkflowStatus(String userId, IdentityVerifierData identityVerifierData,
+    private List<IdVClaim> completeOnfidoVerification(String userId, IdentityVerifierData identityVerifierData,
                                                       IdVProvider idVProvider,
                                                       Map<String, String> idVProviderConfigProperties, int tenantId)
             throws IdentityVerificationException {
@@ -239,10 +240,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
                     .getIdVClaim(userId, idVClaim.getClaimUri(), idVProvider.getIdVProviderUuid(), tenantId);
 
             if (!idVClaim.isVerified()) {
-                Map<String, Object> metadata = idVClaim.getMetadata();
-                metadata.put(ONFIDO_WORKFLOW_STATUS, workflowRunStatus.getStatus());
-                idVClaim.setMetadata(metadata);
-
+                updateMetadataWithWorkflowStatus(idVClaim, workflowRunStatus);
+                // Persist the updated claim information in the database
                 updateIdVClaim(userId, idVClaim, tenantId);
                 verificationClaim.add(idVClaim);
             }
@@ -270,6 +269,30 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             throw new IdentityVerificationServerException(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getCode(),
                     ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getMessage());
         }
+    }
+
+    /**
+     * Updates the metadata of an identity verification claim based on the given workflow run status.
+     * This method ensures that the workflow status in the metadata is not prematurely set to an ending status.
+     * Instead, ending statuses are managed through a webhook to ensure they accurately reflect the actual
+     * completion of the verification process.
+     *
+     * The method modifies the claim's metadata directly, setting the workflow status to 'PROCESSING' if
+     * the current status is an ending one. Otherwise, it updates the metadata with the actual current workflow status.
+     *
+     * @param idVClaim          The identity verification claim whose metadata is being updated.
+     * @param workflowRunStatus The current status of the workflow which dictates how the metadata is updated.
+     */
+    private static void updateMetadataWithWorkflowStatus(IdVClaim idVClaim,
+                                                         OnfidoConstants.WorkflowRunStatus workflowRunStatus) {
+
+        Map<String, Object> metadata = idVClaim.getMetadata();
+        if (workflowRunStatus.isEndingStatus()) {
+            metadata.put(ONFIDO_WORKFLOW_STATUS, OnfidoConstants.WorkflowRunStatus.PROCESSING.getStatus());
+        } else {
+            metadata.put(ONFIDO_WORKFLOW_STATUS, workflowRunStatus.getStatus());
+        }
+        idVClaim.setMetadata(metadata);
     }
 
     /**

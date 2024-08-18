@@ -22,8 +22,10 @@ import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoCl
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_WORKFLOW_RUN_STATUS;
@@ -260,7 +262,9 @@ public class OnfidoConstants {
         ERROR("error");
 
         private final String status;
-
+        private static final Set<WorkflowRunStatus> ENDING_STATUSES = Collections.unmodifiableSet(
+                EnumSet.of(APPROVED, DECLINED, REVIEW)
+                                                                                                 );
         WorkflowRunStatus(String status) {
             this.status = status;
         }
@@ -290,6 +294,15 @@ public class OnfidoConstants {
             }
             throw new OnfidoServerException(ERROR_INVALID_WORKFLOW_RUN_STATUS.getCode(),
                     ERROR_INVALID_WORKFLOW_RUN_STATUS.getMessage());
+        }
+
+        /**
+         * Checks if the current status is one of the workflow run ending statuses.
+         *
+         * @return true if it is one of the ending statuses, false otherwise.
+         */
+        public boolean isEndingStatus() {
+            return ENDING_STATUSES.contains(this);
         }
     }
 
