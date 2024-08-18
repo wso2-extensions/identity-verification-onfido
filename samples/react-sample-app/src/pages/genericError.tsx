@@ -16,49 +16,63 @@
  * under the License.
  */
 
-import React, { FunctionComponent, ReactElement } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Footer, NavBar } from "../components";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Container, Typography, Button, Box, Paper } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { NavBar, Footer } from '../components';
 
-/**
- * Page to display for 404.
- *
- * @param props - Props injected to the component.
- *
- * @return {React.ReactElement}
- */
-export const GenericErrorPage: FunctionComponent = (props): ReactElement => {
+interface LocationState {
+    message?: string;
+}
 
+export const GenericErrorPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const state = location.state as LocationState;
+    const errorMessage = state?.message || "An unexpected error occurred.";
+
+    // Split the error message into an array of strings, each representing a paragraph or step
+    const errorLines = errorMessage.split('\n').filter((line: string) => line.trim() !== '');
 
     return (
-
         <>
-            <NavBar/>
-            <Container disableGutters maxWidth="sm" component="main" sx={{ pt: 8, pb: 6, minHeight: "70vh" }}>
-                <Typography
-                    component="h5"
-                    variant="h4"
-                    align="center"
-                    color="text.primary"
-                    gutterBottom
-                    sx={{ mb: 3 }}
-                >
-                    Oops! Something went wrong.
-                </Typography>
-                <Typography variant="h6" align="center" color="text.secondary" component="p">
-                    Error details: {location?.state?.message}
-                </Typography>
-                <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
-                    Back to home
-                </Button>
+            <NavBar />
+            <Container maxWidth="md">
+                <Paper elevation={3} sx={{ p: 4, mt: 4, mb: 4 }}>
+                    <Box display="flex" flexDirection="column" alignItems="center" textAlign="center">
+                        <ErrorOutlineIcon sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
+                        <Typography variant="h4" gutterBottom>
+                            Oops! Something went wrong.
+                        </Typography>
+                        <Typography variant="body1" paragraph>
+                            We apologize for the inconvenience. Here are the error details:
+                        </Typography>
+                        <Box sx={{ width: '100%', maxWidth: '80%', textAlign: 'left' }}>
+                            {errorLines.map((line: string, index: number) => (
+                                <Typography 
+                                    key={index} 
+                                    variant="body2" 
+                                    color="text.secondary" 
+                                    paragraph
+                                    sx={{ mb: 1 }}
+                                >
+                                    {line}
+                                </Typography>
+                            ))}
+                        </Box>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/')}
+                            sx={{ mt: 3 }}
+                        >
+                            Back to Home
+                        </Button>
+                    </Box>
+                </Paper>
             </Container>
-            <Footer/>
+            <Footer />
         </>
-
     );
 };

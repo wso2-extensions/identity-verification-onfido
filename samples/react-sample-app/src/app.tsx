@@ -19,28 +19,50 @@
 import { AuthProvider, useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import "./app.css";
 import { default as authConfig } from "./config.json";
 import { ErrorBoundary } from "./error-boundary";
-import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage } from "./pages";
+import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage, LoginPage } from "./pages";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { LoadingSpinner } from "./components";
+import theme from './styles/theme';
 
 const AppContent: FunctionComponent = (): ReactElement => {
-    const { error } = useAuthContext();
+    const { error, state } = useAuthContext();
+
+    if (state?.isLoading) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <ErrorBoundary error={error}>
             <Router>
                 <Routes>
-                    <Route path="/" element={<HomePage/>}/>
-                    <Route path="/verify" element={<VerifyPage/>}/>
-                    <Route path="/success" element={<SuccessPage/>}/>
-                    <Route path="/verification-in-progress" element={<VerificationInProgressPage/>}/>
-                    <Route path="/generic-error" element={<GenericErrorPage/>}/>
-                    <Route element={<NotFoundPage/>}/>
+                    <Route 
+                        path="/login" 
+                        element={state?.isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />} 
+                    />
+                    <Route 
+                        path="/" 
+                        element={state?.isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />}
+                    />
+                    <Route 
+                        path="/verify" 
+                        element={state?.isAuthenticated ? <VerifyPage /> : <Navigate to="/login" replace />}
+                    />
+                    <Route 
+                        path="/success" 
+                        element={state?.isAuthenticated ? <SuccessPage /> : <Navigate to="/login" replace />}
+                    />
+                    <Route 
+                        path="/verification-in-progress" 
+                        element={state?.isAuthenticated ? <VerificationInProgressPage /> : <Navigate to="/login" replace />}
+                    />
+                    <Route path="/generic-error" element={<GenericErrorPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Router>
         </ErrorBoundary>
@@ -50,7 +72,7 @@ const AppContent: FunctionComponent = (): ReactElement => {
 const defaultTheme = createTheme();
 const App = () => (
     <AuthProvider config={authConfig}>
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={theme}>
             <GlobalStyles styles={{ ul: { margin: 0, padding: 0, listStyle: 'none' } }}/>
             <CssBaseline/>
             <AppContent/>

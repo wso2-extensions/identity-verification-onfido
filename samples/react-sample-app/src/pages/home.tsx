@@ -16,16 +16,12 @@
  * under the License.
  */
 
-import { Hooks, useAuthContext } from "@asgardeo/auth-react";
+import { useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement, useCallback, useEffect, useState } from "react";
-import { default as authConfig } from "../config.json";
-import { useLocation } from "react-router-dom";
-import { LogoutRequestDenied } from "../components/LogoutRequestDenied";
-import { USER_DENIED_LOGOUT } from "../constants";
-import { useNavigate } from "react-router-dom";
-import { handleMissingClientId } from "../util";
+import { useLocation, useNavigate } from "react-router-dom";
 import { isClaimVerified } from "../api";
 import { AgeVerificationDrawer, Footer, LoadingSpinner, NavBar, Plans } from "../components";
+import { ClaimVerificationStatus, WorkflowStatus } from "../model/identity-verification";
 
 /**
  * Home page for the Sample.
@@ -33,127 +29,99 @@ import { AgeVerificationDrawer, Footer, LoadingSpinner, NavBar, Plans } from "..
  * @return {React.ReactElement}
  */
 export const HomePage: FunctionComponent = (): ReactElement => {
-
-    const {
-        state,
-        signIn,
-        signOut,
-        on
-    } = useAuthContext();
-
+    const { state } = useAuthContext();
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [ hasLogoutFailureError, setHasLogoutFailureError ] = useState<boolean>();
-    const [ isAgeVerified, setIsAgeVerified ] = useState<boolean>(false);
-    const [ isDrawerOpen, setIsDrawerOpen ] = useState<boolean>(false);
+    const [verificationStatus, setVerificationStatus] = useState<ClaimVerificationStatus | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+    const [drawerMessage, setDrawerMessage] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const search = useLocation().search;
-    const stateParam = new URLSearchParams(search).get('state');
-    const errorDescParam = new URLSearchParams(search).get('error_description');
-
-    useEffect(() => {
-        if (state?.isAuthenticated) {
-            return;
-        }
-        handleLogin();
-    }, [ state?.isAuthenticated, signIn ]);
+    const checkVerificationStatus = useCallback(() => {
+        isClaimVerified("http://wso2.org/claims/dob")
+            .then((status: ClaimVerificationStatus) => {
+                console.log("Verification status:", status);
+                setVerificationStatus(status);
+                
+                if (status.isVerified === true) {
+                    setIsDrawerOpen(false);
+                } else if (status.isVerified === undefined) {
+                    setDrawerMessage("You need to verify your age to keep using LifeGuardian Web Portal.");
+                    setIsDrawerOpen(true);
+                } else {
+                    switch(status.workflowStatus) {
+                        case WorkflowStatus.AWAITING_INPUT:
+                            setDrawerMessage("The verification is already initiated and awaiting for the user's document upload.");
+                            break;
+                        case WorkflowStatus.PROCESSING:
+                            setDrawerMessage("Your age verification is in progress. Please check back later.");
+                            break;
+                        case WorkflowStatus.APPROVED:
+                        case WorkflowStatus.DECLINED:
+                        case WorkflowStatus.ABANDONED:
+                            setDrawerMessage("Age verification failed. Please contact support for assistance.");
+                            break;
+                        case WorkflowStatus.REVIEW:
+                            setDrawerMessage("Your age verification is under review. Please check back later.");
+                            break;
+                        case WorkflowStatus.ERROR:
+                            setDrawerMessage("An error occurred during age verification. Please try again later or contact support.");
+                            break;
+                        default:
+                            setDrawerMessage("Age verification status unclear. Please contact support for assistance.");
+                    }
+                    setIsDrawerOpen(true);
+                }
+            })
+            .catch((error) => {
+                console.error("Error verifying age:", error);
+                navigate('/generic-error', { 
+                    state: { 
+                        message: "An error occurred while verifying your age. Please try again later or contact support."
+                    }
+                });
+            })
+            .then(() => {
+                setIsLoading(false);
+            });
+    }, [navigate]);
 
     useEffect(() => {
         if (!state?.isAuthenticated) {
-            return;
+            navigate("/login");
+        } else if (location?.state?.idVerificationInitiated) {
+            navigate("/verification-in-progress");
+        } else {
+            setIsLoading(true);
+            checkVerificationStatus();
         }
-        isClaimVerified("http://wso2.org/claims/dob")
-            .then((isVerified) => {
-                console.log("isVerified: ", isVerified);
-                setIsAgeVerified(isVerified);
-                setIsDrawerOpen(!isVerified);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-
-    }, [ state?.isAuthenticated ]);
-
-    useEffect(() => {
-        if (stateParam && errorDescParam) {
-            if (errorDescParam === "End User denied the logout request") {
-                setHasLogoutFailureError(true);
-            }
-        }
-    }, [ stateParam, errorDescParam ]);
-
-    const handleLogin = useCallback(() => {
-
-        setHasLogoutFailureError(false);
-        signIn().catch((error) => {
-            console.error("Error occurred while signing in.", error);
-            navigate("/generic-error", { state: { message: "Error occurred while signing In" } });
-        });
-    }, [ navigate, signIn ]);
-
-    const handleLogout = () => {
-        setHasLogoutFailureError(false);
-        signOut().catch(() => setHasLogoutFailureError(true));
-    };
+    }, [state?.isAuthenticated, navigate, checkVerificationStatus, location]);
 
     const verifyAge = () => {
-        navigate("/verify");
+        if (verificationStatus?.isVerified === undefined) {
+            navigate("/verify");
+        } else {
+            checkVerificationStatus();
+        }
     };
 
-    /**
-     * handles the error occurs when the logout consent page is enabled
-     * and the user clicks 'NO' at the logout consent page
-     */
-    useEffect(() => {
-        on(Hooks.SignOut, () => {
-            setHasLogoutFailureError(false);
-        });
-
-        on(Hooks.SignOutFailed, () => {
-            if (!errorDescParam) {
-                handleLogin();
-            }
-        })
-    }, [ on, handleLogin, errorDescParam ]);
-
-
-    // If `clientID` is not defined in `config.json`, show a UI warning.
-    if (!authConfig?.clientID) {
-        handleMissingClientId();
-    }
-
-    // Handle log out failure scenarios.
-    if (hasLogoutFailureError) {
-        return (
-            <LogoutRequestDenied
-                errorMessage={USER_DENIED_LOGOUT}
-                handleLogin={handleLogin}
-                handleLogout={handleLogout}
-            />
-        );
-    }
-
-    // If the user is not authenticated, Show a loading spinner until authentication flow is started.
-    if (!state?.isAuthenticated) {
-        return <LoadingSpinner/>;
-    }
-
-    // If the user is authenticated and the ID verification is initiated, show verification in progress page.
-    if (location?.state?.idVerificationInitiated) {
-        navigate("/verification-in-progress");
+    if (isLoading) {
+        return <LoadingSpinner />;
     }
 
     return (
         <>
-            <NavBar/>
-            <Plans isAgeVerified={isAgeVerified} setIsDrawerOpen={setIsDrawerOpen}/>
+            <NavBar />
+            <Plans isAgeVerified={verificationStatus?.isVerified === true} setIsDrawerOpen={setIsDrawerOpen} />
             <AgeVerificationDrawer
                 isOpen={isDrawerOpen}
                 setIsOpen={setIsDrawerOpen}
                 verifyAge={verifyAge}
+                message={drawerMessage}
+                showButton={verificationStatus?.isVerified === undefined}
             />
-            <Footer/>
+            <Footer />
         </>
     );
 };

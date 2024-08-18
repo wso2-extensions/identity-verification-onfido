@@ -42,7 +42,7 @@ export const VerificationInProgressPage = () => {
                     Age Verification in Progress!
                 </Typography>
                 <Typography variant="h6" align="center" color="text.secondary" component="p">
-                    An email will be sent to notify you once the verification is complete.
+                    Once the verification is complete, you can access the LifeGuardian Web Portal.
                 </Typography>
                 <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
                     Back to home

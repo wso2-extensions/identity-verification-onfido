@@ -16,11 +16,13 @@
  * under the License.
  */
 
+// Response interface for identity verification
 export interface IdVResponseInterface {
     id: string;
     claims: IdVClaim[];
 }
 
+// Individual claim interface
 export interface IdVClaim {
     id: string;
     uri: string;
@@ -28,14 +30,33 @@ export interface IdVClaim {
     claimMetadata: ClaimMetadata;
 }
 
+// Claim metadata interface
 export interface ClaimMetadata {
-    applicant_id: string;
-    check_id: string;
-    status: IdVClaimStatus;
+    onfido_applicant_id: string;
+    onfido_workflow_run_id: string;
+    onfido_workflow_status: WorkflowStatus;
     sdk_token?: string;
 }
 
-export enum IdVClaimStatus {
+// Verification workflow status interface
+export interface ClaimVerificationStatus {
+    isVerified: boolean | undefined;
+    workflowStatus: WorkflowStatus | undefined;
+}
+
+// Onfido SDK flow status enum
+export enum SdkFlowStatus {
     INITIATED = "INITIATED",
     COMPLETED = "COMPLETED",
+}
+
+// Workflow status enum
+export enum WorkflowStatus {
+    PROCESSING = 'processing',
+    AWAITING_INPUT = 'awaiting_input',
+    APPROVED = 'approved',
+    DECLINED = 'declined',
+    REVIEW = 'review',
+    ABANDONED = 'abandoned',
+    ERROR = 'error'
 }

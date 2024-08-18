@@ -22,3 +22,4 @@ export * from "./verify";
 export * from "./genericError";
 export * from "./success";
 export * from "./verification-in-progress"
+export * from "./loginPage";

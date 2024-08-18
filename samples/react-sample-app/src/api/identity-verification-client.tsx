@@ -17,7 +17,7 @@
  */
 
 import { HttpRequestConfig, HttpResponse } from "@asgardeo/auth-react";
-import { IdVClaim, IdVClaimStatus, IdVResponseInterface } from "../model/identity-verification";
+import { IdVClaim, SdkFlowStatus, IdVResponseInterface, ClaimVerificationStatus } from "../model/identity-verification";
 import { IdVConstants } from "../constants";
 import { default as authConfig } from "../config.json";
 import { AsgardeoSPAClient } from "@asgardeo/auth-react";
@@ -25,14 +25,14 @@ import { AsgardeoSPAClient } from "@asgardeo/auth-react";
 const httpClient = AsgardeoSPAClient.getInstance();
 
 export const initiateVerification = async (): Promise<IdVResponseInterface> => {
-    return changeVerificationStatus(IdVClaimStatus.INITIATED)
+    return changeVerificationStatus(SdkFlowStatus.INITIATED)
 }
 
 export const completeVerification = async (): Promise<IdVResponseInterface> => {
-    return changeVerificationStatus(IdVClaimStatus.COMPLETED);
+    return changeVerificationStatus(SdkFlowStatus.COMPLETED);
 }
 
-const changeVerificationStatus = async (status: IdVClaimStatus): Promise<IdVResponseInterface> => {
+const changeVerificationStatus = async (status: SdkFlowStatus): Promise<IdVResponseInterface> => {
 
     const requestConfig: HttpRequestConfig = {
         url: `${authConfig?.baseUrl}/api/users/v1/me/idv/verify`,
@@ -59,16 +59,14 @@ const changeVerificationStatus = async (status: IdVClaimStatus): Promise<IdVResp
 
     return httpClient.httpRequest(requestConfig)
         .then((response: HttpResponse<IdVResponseInterface>) => {
-            console.log(response);
             return response.data;
         })
         .catch((error) => {
-            console.log(error)
-            return error;
+            throw error;
         });
 }
 
-export const isClaimVerified = async (claimToVerify: string): Promise<boolean> => {
+export const isClaimVerified = async (claimToVerify: string): Promise<ClaimVerificationStatus> => {
 
     const requestConfig: HttpRequestConfig = {
         url: `${authConfig?.baseUrl}/api/users/v1/me/idv/claims/`,
@@ -86,10 +84,20 @@ export const isClaimVerified = async (claimToVerify: string): Promise<boolean> =
         .then((response: HttpResponse<IdVClaim[]>) => {
             const claims = response.data as IdVClaim[];
             const claim = claims.find((claim) => claim.uri === claimToVerify);
-            return claim?.isVerified as boolean;
+            console.log("Found claim : ", claim );
+            return getClaimVerificationStatus(claim);
         })
         .catch((error) => {
-            console.log(error)
-            return error;
+            throw error;
         });
+}
+
+function getClaimVerificationStatus(claim: IdVClaim | undefined): ClaimVerificationStatus {
+    if (!claim) {
+        return { isVerified: undefined, workflowStatus: undefined };
+    }
+    return {
+        isVerified: claim.isVerified,
+        workflowStatus: claim.claimMetadata.onfido_workflow_status
+    };
 }

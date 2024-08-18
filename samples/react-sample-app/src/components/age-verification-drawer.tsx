@@ -16,35 +16,51 @@
  * under the License.
  */
 
-import { Drawer, Link, Stack } from "@mui/material";
-import * as React from 'react';
+import React from 'react';
+import { Drawer, Typography, Button, Box } from "@mui/material";
 
 interface AgeVerificationDrawerProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     verifyAge: () => void;
+    message: string;
+    showButton: boolean;
 }
 
-export const AgeVerificationDrawer = (props: AgeVerificationDrawerProps) => {
-
-    const { isOpen, setIsOpen, verifyAge } = props;
+export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
+    isOpen,
+    setIsOpen,
+    verifyAge,
+    message,
+    showButton
+}) => {
     return (
         <Drawer
             anchor="bottom"
             open={isOpen}
             onClose={() => setIsOpen(false)}
         >
-            <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="center"
-                spacing={2}
-            >
-                <h3>
-                    You need to verify your age to keep using LifeGuardian Web Portal. Click&nbsp;
-                    <Link onClick={verifyAge}>here</Link> to verify age.
-                </h3>
-            </Stack>
+            <Box sx={{ 
+                p: 2, 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center', 
+                backgroundColor: '#f5f5f5',
+                borderTop: '3px solid #1976d2'
+            }}>
+                <Typography variant="body1" sx={{ mb: showButton ? 2 : 0 }}>
+                    {message}
+                </Typography>
+                {showButton && (
+                    <Button
+                        variant="contained"
+                        onClick={verifyAge}
+                        sx={{ mt: 1 }}
+                    >
+                        Verify Age
+                    </Button>
+                )}
+            </Box>
         </Drawer>
     );
 };

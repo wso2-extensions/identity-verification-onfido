@@ -29,62 +29,55 @@ interface VerifyPageProps {
 }
 
 export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
-
     const navigate = useNavigate();
-
-    const [ loading, setLoading ] = useState<boolean>(false);
-    const [ onfidoInstance, setOnfidoInstance ] = useState<OnfidoServ.SdkHandle>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [onfidoInstance, setOnfidoInstance] = useState<OnfidoServ.SdkHandle | null>(null);
 
     const initIdentityVerification = async () => {
-        setLoading(true);
-        const response: IdVResponseInterface = await initiateVerification();
-        const token = response?.claims?.[0]?.claimMetadata?.sdk_token;
+        try {
+            const response: IdVResponseInterface = await initiateVerification();
 
-        if (!token) {
-            console.error("Token not found in response: ", response);
-            navigate(
-                '/generic-error',
-                { state: { message: "Token not found in the init response from the Onfido server" } }
-            );
-        }
+            const token = response?.claims?.[0]?.claimMetadata?.sdk_token;
+            const workflowRunId = response?.claims?.[0]?.claimMetadata?.onfido_workflow_run_id;
 
-        const instance = OnfidoServ.init({
-            useModal: false,
-            token,
-            onComplete: (data) => {
-                completeVerification()
-                // callback for when everything is complete
-                console.log('Verification completed', data);
-                navigate('/', { state: { idVerificationInitiated: true } });
-            },
-            steps: [
-                {
-                    type: 'welcome',
-                    options: {
-                        title: 'Verify your age',
-                    },
+            if (!token || !workflowRunId) {
+                const missingItem = !token ? "Token" : "Workflow run ID";
+                throw new Error(`${missingItem} not found in the init response from the Onfido server`);
+            }
+
+            const instance = OnfidoServ.init({
+                useModal: false,
+                token,
+                onComplete: (data) => {
+                    completeVerification();
+                    console.log('Verification completed', data);
+                    navigate('/', { state: { idVerificationInitiated: true } });
                 },
-                'welcome',
-                'document',
-                'face',
-                'complete',
-            ],
-        });
-
-        setOnfidoInstance(instance);
-        setLoading(false);
-    }
+                workflowRunId
+            });
+            setOnfidoInstance(instance);
+        } catch (error) {
+            let ErrorMessage;
+            if (error.response?.status === 400 && error.response?.data?.code === "OIDV-10002") {
+                ErrorMessage = `The initiation of the identity verification encountered an issue. Please proceed with the following steps to resolve it:
+                    1. Log in to your WSO2 MyAccount.
+                    2. Check if the following required attributes are set and have valid values:
+                    - Date of Birth
+                    - First Name
+                    - Last Name
+                    3. If any of these attributes are missing or incorrect, please update them in your WSO2 MyAccount.
+                    If you've confirmed all attributes are correct and the issue persists, please contact support for further assistance.`;
+            } else {
+                ErrorMessage = error.message || error.response?.data?.description || "An unexpected error occurred during the initiation of the identity verification. Please try again later or contact support.";
+            }
+            navigate('/generic-error', { state: { message: ErrorMessage } });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (loading) {
-            return;
-        }
-
-        initIdentityVerification()
-            .catch((err) => {
-                console.error('err:', err.message, err.request);
-                navigate('/generic-error', { state: { message: err.message } });
-            });
+        initIdentityVerification();
 
         // method to clean up the onfido instance
         return () => {
