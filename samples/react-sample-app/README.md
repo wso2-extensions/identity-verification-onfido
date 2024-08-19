@@ -1,68 +1,54 @@
-# Asgardeo Auth React SDK Usage Example (Single Page Application)
+# Life Guardian - Onfido Connector Usage Example (Single Page Application)
 
-This sample is developed to demonstrate the basic usage of the Asgardeo Auth React SDK.
+This sample application demonstrates how to perform identity verification with Onfido using WSO2 Identity Server in a Single Page Application (SPA).
 
 ## Getting Started
 
 ### Prerequisites
--   `Node.js` (version 10 or above).
+- Ensure you have `Node.js` installed (version 10 or above).
 
-### Register an Application
+### Registering a Single Page Application in the WSO2 Identity Server Console
 
-Follow the instructions in the [Try Out the Sample Apps](../../SAMPLE_APPS.md#try-out-the-sample-apps) section to register an application.
+Follow the instructions in the [WSO2 Identity Server Documentation](https://is.docs.wso2.com/en/latest/guides/applications/register-single-page-app/) to register your application.
 
-Make sure to add `https://localhost:3000` as a Redirect URL and also add it under allowed origins. 
+Ensure you add `https://localhost:3000` as a Redirect URL and also include it under Allowed Origins.
 
-### Download the Sample
+### Configuring the Sample Application
 
-Download the sample from [here](https://github.com/asgardeo/asgardeo-auth-react-sdk/releases/latest/download/asgardeo-react-app.zip) and extract the zip file.
+1. Navigate to the `identity-verification-onfido-sample-app/samples/react-sample-app/src` directory.
+2. Open the `config.json` file and update it with your registered application and Onfido Identity Verification Provider details:
 
-### Configure the Sample
+    ```json
+    {
+        "clientID": "<CLIENT_ID>",
+        "baseUrl": "https://<DOMAIN_NAME>/t/<TENANT_NAME>",
+        "signInRedirectURL": "https://localhost:3000",
+        "signOutRedirectURL": "https://localhost:3000",
+        "scope": [ "openid", "profile", "internal_login"],
+        "identityVerificationProviderId": "<ONFIDO_IDVP_ID>"
+    }
+    ```
+3. Create a `.env` file in the root of the application and add the following:
 
-Update configuration file `src/config.json` with your registered app details.
+    ```
+    HTTPS="true"
+    ```
 
-**Note:** You will only have to paste in the `client ID` generated for the application you registered.
+### Running the Application
 
-Read more about the SDK configurations [here](../../README.md#authprovider).
-
-```json
-{
-    "clientID": "<ADD_CLIENT_ID_HERE>",
-    "baseUrl": "https://api.asgardeo.io/t/<org_name>",
-    "signInRedirectURL": "https://localhost:3000",
-    "signOutRedirectURL": "https://localhost:3000",
-    "scope": ["profile"]
-}
-```
-
-### Run the Application
+Run the following commands to install dependencies and start the application:
 
 ```bash
 npm install && npm start
 ```
-The app should open at [`https://localhost:3000`](https://localhost:3000)
+The application will open at [`https://localhost:3000`](https://localhost:3000).
 
-### Change the Application's Development Server Port
+### Changing the Application's Development Server Port
 
-By default, the development server runs on port `3000`. Incase if you wish to change this to something else, 
-follow the steps below.
+If you need to run the development server on a different port, follow these steps:
 
-1. Update the `PORT` in [.env](.env) file in the app root.
-2. Update the `signInRedirectURL` & `signOutRedirectURL` in [src/config.json](./src/config.json)
-3. Go to the Asgardeo Console and navigate to the protocol tab of your application:
-    - Update the Authorized Redirect URL.
-    - Update the Allowed Origins.
-
-## Contribute
-
-Please read [Contributing to the Code Base](http://wso2.github.io/) for details on our code of conduct, and the process for submitting pull requests to us.
-
-### Reporting Issues
-
-We encourage you to report issues, improvements, and feature requests creating [Github Issues](https://github.com/asgardeo/asgardeo-auth-react-sdk/issues).
-
-Important: And please be advised that security issues must be reported to security@wso2com, not as GitHub issues, in order to reach the proper audience. We strongly advise following the WSO2 Security Vulnerability Reporting Guidelines when reporting the security issues.
-
-## License
-
-This project is licensed under the Apache License 2.0. See the [LICENSE](../../LICENSE) file for details.
+1. Update the `PORT` in the `.env` file located at the root of the application.
+2. Update the `signInRedirectURL` and `signOutRedirectURL` in the `src/config.json` file.
+3. Go to the Asgardeo Console and navigate to the **Protocol** tab of your application:
+    - Update the **Authorized Redirect URL**.
+    - Update the **Allowed Origins**.
