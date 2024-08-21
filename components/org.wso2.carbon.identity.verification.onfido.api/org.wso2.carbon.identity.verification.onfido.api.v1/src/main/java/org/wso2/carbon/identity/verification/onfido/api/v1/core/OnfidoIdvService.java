@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -63,6 +63,7 @@ import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.HMAC_SHA256_ALGORITHM;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.RESOURCE_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.DATA_COMPARISON;
@@ -89,7 +90,7 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
 
 /**
- * Onfido Identity Verification Service implementation to be notified when he verification is completed.
+ * Onfido Identity Verification Service implementation to be notified when the verification is completed.
  */
 public class OnfidoIdvService {
 
@@ -228,8 +229,8 @@ public class OnfidoIdvService {
         Mac sha256Hmac;
         SecretKeySpec secretKey;
         try {
-            sha256Hmac = Mac.getInstance("HmacSHA256");
-            secretKey = new SecretKeySpec(webhookToken.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            sha256Hmac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
+            secretKey = new SecretKeySpec(webhookToken.getBytes(StandardCharsets.UTF_8), HMAC_SHA256_ALGORITHM);
             sha256Hmac.init(secretKey);
         } catch (Exception ex) {
             throw new OnfidoServerException(ERROR_SIGNATURE_VALIDATION_PROCESSING.getCode(),
@@ -253,6 +254,7 @@ public class OnfidoIdvService {
      * @return The hexadecimal string representation of the byte array.
      */
     private String encodeHexString(byte[] byteArray) {
+
         StringBuilder hexStringBuffer = new StringBuilder();
         for (byte b : byteArray) {
             hexStringBuffer.append(byteToHex(b));
@@ -267,6 +269,7 @@ public class OnfidoIdvService {
      * @return The hexadecimal string representation of the byte.
      */
     private String byteToHex(byte num) {
+
         char[] hexDigits = new char[2];
         hexDigits[0] = Character.forDigit((num >> 4) & 0xF, 16);
         hexDigits[1] = Character.forDigit((num & 0xF), 16);

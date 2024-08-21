@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,6 +25,7 @@ public class Constants {
     public static final String ERROR_PREFIX = "OIDV-";
     public static final String RESOURCE_WORKFLOW_RUN = "workflow_run";
     public static final String ACTION_WORKFLOW_RUN_COMPLETED = "workflow_run.completed";
+    public static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
 
     /**
      * Enum for identity verification related errors.

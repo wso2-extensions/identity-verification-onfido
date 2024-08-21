@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,10 +37,7 @@ public class ContextLoader {
      */
     public static String getTenantDomainFromContext() {
 
-        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        if (IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT) != null) {
-            tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT);
-        }
-        return tenantDomain;
+        return (String) IdentityUtil.threadLocalProperties.get().getOrDefault(TENANT_NAME_FROM_CONTEXT,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 }

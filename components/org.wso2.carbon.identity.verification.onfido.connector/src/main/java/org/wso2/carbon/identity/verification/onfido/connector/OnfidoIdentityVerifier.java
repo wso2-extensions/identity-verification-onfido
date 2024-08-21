@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -119,7 +119,9 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             return identityVerifierData;
 
         } catch (OnfidoClientException e) {
-            log.error("Invalid Onfido SDK flow status", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid Onfido SDK flow status", e);
+            }
             throw new IdentityVerificationClientException(ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getCode(),
                     ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getMessage(), e);
         }

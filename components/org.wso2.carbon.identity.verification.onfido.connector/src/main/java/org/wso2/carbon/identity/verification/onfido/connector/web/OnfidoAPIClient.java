@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -121,7 +121,7 @@ public class OnfidoAPIClient {
     }
 
     /**
-     * This method is used to create applicant in Onfido with the given verification claim data of a user.
+     * This method is used to update applicant in Onfido with the given verification claim data of a user.
      *
      * @param idVConfigPropertyMap The map of the configuration properties.
      * @param idvClaimsWithValues  Idv claims with values.
