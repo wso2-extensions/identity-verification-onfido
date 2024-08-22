@@ -30,7 +30,6 @@ import org.wso2.carbon.extension.identity.verification.provider.model.IdVProvide
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.verification.onfido.api.common.Constants;
-import org.wso2.carbon.identity.verification.onfido.api.common.ContextLoader;
 import org.wso2.carbon.identity.verification.onfido.api.common.OnfidoIdvServiceHolder;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.APIError;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
@@ -40,6 +39,7 @@ import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequestPa
 import org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoClientException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -62,7 +62,6 @@ import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_RESOLVING_IDVP;
-import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_RETRIEVING_TENANT;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.HMAC_SHA256_ALGORITHM;
@@ -139,11 +138,10 @@ public class OnfidoIdvService {
      */
     private int getTenantId() {
 
-        String tenantDomain = ContextLoader.getTenantDomainFromContext();
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+
         if (StringUtils.isBlank(tenantDomain)) {
-            throw handleError(
-                    Response.Status.INTERNAL_SERVER_ERROR,
-                    SERVER_ERROR_RETRIEVING_TENANT, tenantDomain);
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
         return IdentityTenantUtil.getTenantId(tenantDomain);
@@ -177,7 +175,7 @@ public class OnfidoIdvService {
      * Retrieves and validates the configuration properties of the Identity Verification Provider.
      *
      * @param idVProvider Identity Verification Provider.
-     * @return Config property map of Identity Verification Provider
+     * @return Config property map of Identity Verification Provider.
      */
     private Map<String, String> getIdVConfigPropertyMap(IdVProvider idVProvider) throws OnfidoServerException {
 
@@ -241,10 +239,10 @@ public class OnfidoIdvService {
                     ERROR_SIGNATURE_VALIDATION_PROCESSING.getMessage(), e);
         }
 
-        // Compute the HMAC SHA-256 of the raw request body
+        // Compute the HMAC SHA-256 of the raw request body.
         String expectedSignature = encodeHexString(sha256Hmac.doFinal(rawRequestBody.getBytes(StandardCharsets.UTF_8)));
 
-        // Perform a time-safe comparison of the signatures
+        // Perform a time-safe comparison of the signatures.
         if (!MessageDigest.isEqual(expectedSignature.getBytes(StandardCharsets.UTF_8),
                 xSHA2Signature.getBytes(StandardCharsets.UTF_8))) {
             throw new OnfidoClientException(ERROR_SIGNATURE_VALIDATION.getCode(),
@@ -301,9 +299,9 @@ public class OnfidoIdvService {
     /**
      * Extracts data comparison results from the resource map.
      *
-     * @param resource The resource map containing output data
-     * @return A map of data comparison results
-     * @throws OnfidoClientException if the resource structure is invalid or missing required data
+     * @param resource The resource map containing output data.
+     * @return A map of data comparison results.
+     * @throws OnfidoClientException if the resource structure is invalid or missing required data.
      */
     private Map<String, Object> extractDataComparisonResults(Map<String, Object> resource)
             throws OnfidoClientException {
@@ -384,7 +382,7 @@ public class OnfidoIdvService {
                     continue;
                 }
 
-                // Update the claim verification status if the workflow run status is "APPROVED"
+                // Update the claim verification status if the workflow run status is "APPROVED".
                 // Note:
                 //  Even if the overall workflow status is "APPROVED", individual claims may still fail verification.
                 //  This discrepancy primarily stems from how the workflow is defined in the Onfido Studio:
@@ -402,22 +400,22 @@ public class OnfidoIdvService {
                         log.error(String.format("No onfido verification results found for claim: %s of user: %s",
                                 wso2ClaimUri, idVClaim.getUserId()));
                     } else {
-                        // A claim is considered verified if its verification status is "CLEAR"
+                        // A claim is considered verified if its verification status is "CLEAR".
                         boolean isVerified = OnfidoConstants.ClaimVerificationStatus.CLEAR.toString()
                                 .equals(verificationResult.get(RESULT));
                         idVClaim.setIsVerified(isVerified);
 
-                        // Update metadata with verification status and timestamp
+                        // Update metadata with verification status and timestamp.
                         metadata.put(ONFIDO_VERIFICATION_STATUS, verificationResult.get(RESULT));
                         metadata.put(ONFIDO_LAST_VERIFIED, completedAt);
                     }
                 }
 
-                // Update the workflow status in the metadata
+                // Update the workflow status in the metadata.
                 metadata.put(ONFIDO_WORKFLOW_STATUS, workflowRunStatus.getStatus());
                 idVClaim.setMetadata(metadata);
 
-                // Persist the updated claim information in the database
+                // Persist the updated claim information in the database.
                 OnfidoIdvServiceHolder.getIdentityVerificationManager()
                         .updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
                 if (log.isDebugEnabled()) {
@@ -501,19 +499,6 @@ public class OnfidoIdvService {
                 .build(log, e, buildErrorDescription(errorEnum.getDescription(), data), isClientError);
 
         return new APIError(status, errorResponse);
-    }
-
-    /**
-     * Overloaded method to handle cases where there is no exception to pass.
-     *
-     * @param status    The HTTP status to return.
-     * @param errorEnum The error message enumeration.
-     * @param data      Additional data for the error message.
-     * @return An APIError response.
-     */
-    private APIError handleError(Response.Status status, Constants.ErrorMessage errorEnum, String... data) {
-
-        return handleException(status, null, errorEnum, data);
     }
 
     /**

@@ -32,7 +32,7 @@ public class Constants {
 
     /**
      * Enum for identity verification related errors.
-     * Error Code - code to identify the error.
+     * Error Code - Code to identify the error.
      * Error Message - What went wrong.
      * Error Description - Why it went wrong.
      */

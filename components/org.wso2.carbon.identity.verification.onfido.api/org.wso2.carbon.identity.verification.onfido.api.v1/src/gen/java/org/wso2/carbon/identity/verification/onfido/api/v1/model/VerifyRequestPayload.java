@@ -43,7 +43,7 @@ public class VerifyRequestPayload  {
 
 
     /**
-    * The resource type affected by the event executed from Onfido
+    * The resource type affected by the event executed from Onfido.
     **/
     public VerifyRequestPayload resourceType(String resourceType) {
 
@@ -51,7 +51,7 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "workflow_run", required = true, value = "The resource type affected by the event executed from Onfido")
+    @ApiModelProperty(example = "workflow_run", required = true, value = "The resource type affected by the event executed from Onfido.")
     @JsonProperty("resource_type")
     @Valid
     @NotNull(message = "Property resourceType cannot be null.")
@@ -64,7 +64,7 @@ public class VerifyRequestPayload  {
     }
 
     /**
-    * The event that triggered this webhook
+    * The event that triggered this webhook.
     **/
     public VerifyRequestPayload action(String action) {
 
@@ -72,7 +72,7 @@ public class VerifyRequestPayload  {
         return this;
     }
     
-    @ApiModelProperty(example = "workflow_run.completed", required = true, value = "The event that triggered this webhook")
+    @ApiModelProperty(example = "workflow_run.completed", required = true, value = "The event that triggered this webhook.")
     @JsonProperty("action")
     @Valid
     @NotNull(message = "Property action cannot be null.")

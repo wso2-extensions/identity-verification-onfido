@@ -36,7 +36,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class RawRequestBodyInterceptor extends AbstractPhaseInterceptor<Message> {
 
-    // ThreadLocal variable to store the raw request body for each thread
+    // ThreadLocal variable to store the raw request body for each thread.
     private static final ThreadLocal<String> threadLocalRawRequestBody = new ThreadLocal<>();
 
     public RawRequestBodyInterceptor() {
@@ -57,11 +57,11 @@ public class RawRequestBodyInterceptor extends AbstractPhaseInterceptor<Message>
         InputStream is = message.getContent(InputStream.class);
         if (is != null) {
             try {
-                // Convert the InputStream to a String and store it in ThreadLocal
+                // Convert the InputStream to a String and store it in ThreadLocal.
                 String rawRequestBody = readInputStream(is);
                 threadLocalRawRequestBody.set(rawRequestBody);
 
-                // Reset the InputStream for CXF to process it again
+                // Reset the InputStream for CXF to process it again.
                 message.setContent(InputStream.class,
                         new ByteArrayInputStream(rawRequestBody.getBytes(StandardCharsets.UTF_8)));
             } catch (IOException e) {

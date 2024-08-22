@@ -249,10 +249,10 @@ public class OnfidoAPIClient {
      * - Without this approach, setPath("/applicants") would have resulted in
      *   "https://api.eu.onfido.com/applicants", omitting the version number.
      *
-     * @param baseUrl  The base URL, including the scheme, host, and version path
-     * @param endpoint The endpoint to be appended to the base URL's path
-     * @return A URI combining the base URL and the endpoint
-     * @throws URISyntaxException If the resulting URI is not valid
+     * @param baseUrl  The base URL, including the scheme, host, and version path.
+     * @param endpoint The endpoint to be appended to the base URL's path.
+     * @return A URI combining the base URL and the endpoint.
+     * @throws URISyntaxException If the resulting URI is not valid.
      */
     private static URI buildUri(String baseUrl, String endpoint) throws URISyntaxException {
 
