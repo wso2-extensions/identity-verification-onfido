@@ -51,6 +51,8 @@ public class OnfidoConstants {
     public static final String RESULT = "result";
     public static final String OUTPUT = "output";
     public static final String DATA_COMPARISON = "data_comparison";
+    public static final String DOB = "dob";
+    public static final String DATE_OF_BIRTH = "date_of_birth";
 
     /**
      * HTTP request headers for Onfido API calls.
@@ -64,7 +66,6 @@ public class OnfidoConstants {
     public static final String APPLICANTS_ENDPOINT = "/applicants";
     public static final String SDK_TOKEN_ENDPOINT = "/sdk_token";
     public static final String WORKFLOW_RUN_ENDPOINT = "/workflow_runs";
-    public static final String STATUS_VERIFY_ENDPOINT = "/workflow_runs/";
 
     /**
      * Metadata keys for storing onfido verification related details.
@@ -81,7 +82,7 @@ public class OnfidoConstants {
     public static final Map<String, String> ONFIDO_CLAIM_NAME_MAPPING;
     static {
         Map<String, String> map = new HashMap<>();
-        map.put("dob", "date_of_birth");
+        map.put(DOB, DATE_OF_BIRTH);
         ONFIDO_CLAIM_NAME_MAPPING = Collections.unmodifiableMap(map);
     }
 
@@ -101,7 +102,7 @@ public class OnfidoConstants {
         ERROR_CREATING_ONFIDO_APPLICANT("10005",
                 "The applicant creation in the Onfido failed with the response %s."),
         ERROR_INITIATING_ONFIDO_VERIFICATION("10006",
-                "Initiating the verification in Onfido failed with the response %s."),
+                "Error occured while initiating the verification in Onfido for the user : %s."),
         ERROR_CREATING_WORKFLOW_RUN("10007",
                 "Creating the Onfido workflow run was failed with the response %s."),
         ERROR_GETTING_ONFIDO_SDK_TOKEN("10008",
@@ -121,9 +122,10 @@ public class OnfidoConstants {
                 "At least one IdVProvider configuration property is empty."),
         ERROR_SIGNATURE_VALIDATION("10017",
                 "Signature validation failed due to an invalid request signature."),
-        ERROR_SIGNATURE_VALIDATION_PROCESSING("10018","Error occurred during signature validation."),
+        ERROR_SIGNATURE_VALIDATION_PROCESSING("10018", "Error occurred during signature validation."),
         ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("10019",
-                "Unsupported Onfido resource type or action; only 'workflow_run' and 'workflow_run.completed' are supported."),
+                "Unsupported Onfido resource type or action; only 'workflow_run' and " +
+                        "'workflow_run.completed' are supported."),
         ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS("10020",
                 "Invalid Onfido SDK flow status provided."),
         ERROR_INVALID_WORKFLOW_RUN_STATUS("10021",
@@ -135,7 +137,17 @@ public class OnfidoConstants {
         ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT("10024",
                 "Webhook payload request is missing the expected output in the resource field."),
         ERROR_INVALID_OR_MISSING_DATA_COMPARISON("10025",
-                "Webhook payload output is missing or contains invalid data_comparison field.");
+                "Webhook payload output is missing or contains invalid data_comparison field."),
+        ERROR_BUILDING_ONFIDO_APPLICANT_URI("10026", "Error occurred while building URI for " +
+                "Onfido applicant creation."),
+        ERROR_BUILDING_WORKFLOW_RUN_URI("10027", "Error occurred while building URI for  " +
+                "Onfido workflow run creation."),
+        ERROR_BUILDING_ONFIDO_SDK_TOKEN_URI("10028", "Error occurred while building URI for " +
+                "Onfido SDK token request."),
+        ERROR_BUILDING_ONFIDO_APPLICANT_UPDATE_URI("10029", "Error occurred while building URI for " +
+                "updating Onfido applicant."),
+        ERROR_BUILDING_WORKFLOW_RUN_GET_URI("10030", "Error occurred while building URI for " +
+                "retrieving Onfido workflow run status.");
 
         private final String code;
         private final String message;

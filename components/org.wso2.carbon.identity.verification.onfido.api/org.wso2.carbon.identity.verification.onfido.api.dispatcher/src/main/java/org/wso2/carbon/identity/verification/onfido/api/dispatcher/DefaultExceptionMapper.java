@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.dispatcher;
 
-import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorDTO;
-import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorDTO;
+import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;

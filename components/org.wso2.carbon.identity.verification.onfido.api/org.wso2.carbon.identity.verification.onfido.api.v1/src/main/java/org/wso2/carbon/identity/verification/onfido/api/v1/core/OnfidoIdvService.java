@@ -42,7 +42,9 @@ import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoCl
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,13 +56,13 @@ import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_INVALID_REQUEST;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_RESOLVING_IDVP;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_SIGNATURE_MISMATCH;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_GENERAL_ERROR;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_RESOLVING_IDVP;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_RETRIEVING_TENANT;
-import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_SIGNATURE_MISMATCH;
-import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.HMAC_SHA256_ALGORITHM;
@@ -68,11 +70,11 @@ import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.DATA_COMPARISON;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_OR_MISSING_DATA_COMPARISON;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_WORKFLOW_RUN_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RESOLVING_IDV_PROVIDER;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE_VALIDATION;
@@ -99,7 +101,8 @@ public class OnfidoIdvService {
     /**
      * Handles the Onfido webhook verification status update.
      * This method is invoked when Onfido sends a verification status update via webhook.
-     * It validates the request verifying the signature, and updates the verification claims of the user based on the status.
+     * It validates the request verifying the signature, and updates the verification claims of the user
+     * based on the status.
      *
      * @param xSHA2Signature The SHA-2 signature from the Onfido webhook header for validation.
      * @param idvpId         The identity verification provider ID.
@@ -208,7 +211,8 @@ public class OnfidoIdvService {
 
     /**
      * Validates the signature provided in the webhook request against the expected signature.
-     * Implementation logic extracted from https://github.com/onfido/onfido-java/blob/2466de99b6036a8e72186e52bbd5e66e3779223d/src/main/java/com/onfido/WebhookEventVerifier.java#L81
+     * Implementation logic extracted from
+     * https://github.com/onfido/onfido-java/blob/master/src/main/java/com/onfido/WebhookEventVerifier.java#L81
      *
      * @param xSHA2Signature              The SHA-2 signature from the Onfido webhook.
      * @param idVProviderConfigProperties The configuration properties of the Identity Verification Provider.
@@ -232,16 +236,17 @@ public class OnfidoIdvService {
             sha256Hmac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
             secretKey = new SecretKeySpec(webhookToken.getBytes(StandardCharsets.UTF_8), HMAC_SHA256_ALGORITHM);
             sha256Hmac.init(secretKey);
-        } catch (Exception ex) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new OnfidoServerException(ERROR_SIGNATURE_VALIDATION_PROCESSING.getCode(),
-                    ERROR_SIGNATURE_VALIDATION_PROCESSING.getMessage(), ex);
+                    ERROR_SIGNATURE_VALIDATION_PROCESSING.getMessage(), e);
         }
 
         // Compute the HMAC SHA-256 of the raw request body
         String expectedSignature = encodeHexString(sha256Hmac.doFinal(rawRequestBody.getBytes(StandardCharsets.UTF_8)));
 
         // Perform a time-safe comparison of the signatures
-        if (!MessageDigest.isEqual(expectedSignature.getBytes(), xSHA2Signature.getBytes())) {
+        if (!MessageDigest.isEqual(expectedSignature.getBytes(StandardCharsets.UTF_8),
+                xSHA2Signature.getBytes(StandardCharsets.UTF_8))) {
             throw new OnfidoClientException(ERROR_SIGNATURE_VALIDATION.getCode(),
                     ERROR_SIGNATURE_VALIDATION.getMessage());
         }
@@ -323,7 +328,8 @@ public class OnfidoIdvService {
     /**
      * Updates the identity verification claims based on the provided Onfido verification request.
      *
-     * @param verifyRequest The Onfido verification request containing the workflow run details and attribute verification results.
+     * @param verifyRequest The Onfido verification request containing the workflow run details and attribute
+     *                      verification results.
      * @param idvpId        The identity verification provider ID.
      * @param tenantId      The tenant ID.
      * @param idVProvider   The identity verification provider.

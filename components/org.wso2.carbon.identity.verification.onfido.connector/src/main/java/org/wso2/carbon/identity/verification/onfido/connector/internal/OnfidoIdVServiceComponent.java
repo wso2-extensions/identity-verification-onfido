@@ -79,12 +79,12 @@ public class OnfidoIdVServiceComponent {
             unbind = "unsetIdentityVerificationManager")
     protected void setIdentityVerificationManager(IdentityVerificationManager identityVerificationManager) {
 
-        OnfidoIDVDataHolder.getInstance().setIdentityVerificationManager(identityVerificationManager);
+        OnfidoIDVDataHolder.setIdentityVerificationManager(identityVerificationManager);
     }
 
     protected void unsetIdentityVerificationManager(IdentityVerificationManager identityVerificationManager) {
 
-        OnfidoIDVDataHolder.getInstance().setIdentityVerificationManager(null);
+        OnfidoIDVDataHolder.setIdentityVerificationManager(null);
     }
 
     @Reference(
@@ -95,11 +95,11 @@ public class OnfidoIdVServiceComponent {
             unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
 
-        OnfidoIDVDataHolder.getInstance().setRealmService(realmService);
+        OnfidoIDVDataHolder.setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
 
-        OnfidoIDVDataHolder.getInstance().setRealmService(null);
+        OnfidoIDVDataHolder.setRealmService(null);
     }
 }

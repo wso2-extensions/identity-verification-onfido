@@ -27,12 +27,10 @@ import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoSe
 import java.io.IOException;
 
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_HTTP_CLIENT;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_HTTP_CLIENT;
-
-import static java.util.Objects.isNull;
 
 /**
- * Class to retrieve the HTTP Clients.
+ * Manages HTTP client connections for the Onfido connector.
+ * This class implements the singleton pattern to ensure only one instance of the HTTP client is created.
  */
 public class HTTPClientManager {
 
@@ -44,36 +42,26 @@ public class HTTPClientManager {
     private final CloseableHttpClient httpClient;
 
     /**
-     * Creates a client manager.
+     * Private constructor to prevent direct instantiation.
      *
-     * @throws OnfidoServerException Exception thrown when an error occurred when creating HTTP client.
+     * @param httpClient The CloseableHttpClient instance to be managed.
      */
-    private HTTPClientManager() throws OnfidoServerException {
-
-        PoolingHttpClientConnectionManager connectionManager;
-        try {
-            connectionManager = createPoolingConnectionManager();
-        } catch (IOException e) {
-            throw new OnfidoServerException(ERROR_CREATING_HTTP_CLIENT.getCode(),
-                    ERROR_CREATING_HTTP_CLIENT.getMessage(), e);
-        }
-
-        RequestConfig config = createRequestConfig();
-        httpClient = HttpClients.custom().setDefaultRequestConfig(config)
-                .setConnectionManager(connectionManager).build();
+    private HTTPClientManager(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     /**
-     * Returns an instance of the HTTPClientManager.
+     * Gets the singleton instance of HTTPClientManager.
+     * If the instance doesn't exist, it creates one.
      *
-     * @throws OnfidoServerException Exception thrown when an error occurred when creating HTTP client.
+     * @return The singleton instance of HTTPClientManager.
+     * @throws OnfidoServerException If there's an error creating the HTTP client.
      */
     public static HTTPClientManager getInstance() throws OnfidoServerException {
-
         if (httpClientManagerInstance == null) {
             synchronized (HTTPClientManager.class) {
                 if (httpClientManagerInstance == null) {
-                    httpClientManagerInstance = new HTTPClientManager();
+                    httpClientManagerInstance = createInstance();
                 }
             }
         }
@@ -81,22 +69,48 @@ public class HTTPClientManager {
     }
 
     /**
-     * Get HTTP client.
+     * Creates a new instance of HTTPClientManager.
      *
-     * @return CloseableHttpClient instance.
-     * @throws OnfidoServerException Exception thrown when an error occurred when getting HTTP client.
+     * @return A new instance of HTTPClientManager.
+     * @throws OnfidoServerException If there's an error creating the HTTP client.
+     */
+    private static HTTPClientManager createInstance() throws OnfidoServerException {
+        try {
+            PoolingHttpClientConnectionManager connectionManager = createPoolingConnectionManager();
+            RequestConfig config = createRequestConfig();
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setDefaultRequestConfig(config)
+                    .setConnectionManager(connectionManager)
+                    .build();
+            return new HTTPClientManager(httpClient);
+        } catch (IOException e) {
+            throw new OnfidoServerException(ERROR_CREATING_HTTP_CLIENT.getCode(),
+                    ERROR_CREATING_HTTP_CLIENT.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gets the managed HTTP client instance.
+     *
+     * The httpClient is initialized in the private constructor and marked as final,
+     * ensuring it's always set when an HTTPClientManager instance is created. The only way to instantiate
+     * HTTPClientManager is through the getInstance() method, which internally calls createInstance().
+     * If createInstance() fails to create a CloseableHttpClient, it throws an OnfidoServerException,
+     * and no HTTPClientManager instance is created. Thus, if an HTTPClientManager instance exists,
+     * httpClient is guaranteed to be non-null.
+     *
+     * @return The CloseableHttpClient instance.
      */
     public CloseableHttpClient getHttpClient() throws OnfidoServerException {
-
-        if (isNull(httpClient)) {
-            throw new OnfidoServerException(ERROR_GETTING_HTTP_CLIENT.getCode(),
-                    ERROR_GETTING_HTTP_CLIENT.getMessage());
-        }
         return httpClient;
     }
 
-    private RequestConfig createRequestConfig() {
-
+    /**
+     * Creates a RequestConfig instance with predefined timeout settings.
+     *
+     * @return A configured RequestConfig instance.
+     */
+    private static RequestConfig createRequestConfig() {
         return RequestConfig.custom()
                 .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
                 .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
@@ -106,8 +120,13 @@ public class HTTPClientManager {
                 .build();
     }
 
-    private PoolingHttpClientConnectionManager createPoolingConnectionManager() throws IOException {
-
+    /**
+     * Creates a PoolingHttpClientConnectionManager with predefined connection limits.
+     *
+     * @return A configured PoolingHttpClientConnectionManager instance.
+     * @throws IOException If there's an error creating the connection manager.
+     */
+    private static PoolingHttpClientConnectionManager createPoolingConnectionManager() throws IOException {
         PoolingHttpClientConnectionManager poolingHttpClientConnectionMgr = new PoolingHttpClientConnectionManager();
         // Increase max total connection to 20.
         poolingHttpClientConnectionMgr.setMaxTotal(DEFAULT_MAX_CONNECTIONS);

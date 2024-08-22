@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.wso2.carbon.identity.verification.onfido.api.v1.DefaultApiService;
 import org.wso2.carbon.identity.verification.onfido.api.v1.core.OnfidoIdvService;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequest;
+
 import javax.ws.rs.core.Response;
 
 /**

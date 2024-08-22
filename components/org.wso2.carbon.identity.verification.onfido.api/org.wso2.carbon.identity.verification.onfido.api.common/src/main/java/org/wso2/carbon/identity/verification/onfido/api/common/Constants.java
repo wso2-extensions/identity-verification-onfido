@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.common;
 
+/**
+ * This class defines constants used across the Onfido identity verification API implementation.
+ */
 public class Constants {
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
@@ -56,22 +59,26 @@ public class Constants {
                 "An unexpected error occurred while processing the request."),
         SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS("65007",
                 "Invalid Onfido workflow run status provided.",
-                "An error occurred due to an invalid Onfido workflow run status being provided in the request."),
-
+                "An error occurred due to an invalid Onfido workflow run status being provided " +
+                        "in the request."),
 
         // Client errors
         CLIENT_ERROR_RESOLVING_IDVP("60001",
                 "Identity verification provider retrieval failed.",
-                "The identity verification provider ID in the URL could not be resolved. It may be unavailable or disabled."),
+                "The identity verification provider ID in the URL could not be resolved. " +
+                        "It may be unavailable or disabled."),
         CLIENT_ERROR_SIGNATURE_MISMATCH("60002",
                 "Invalid request signature.",
-                "The request contains an invalid signature, indicating potential unauthorized access or data tampering."),
+                "The request contains an invalid signature, indicating potential unauthorized access " +
+                        "or data tampering."),
         CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("60003",
                 "Unsupported resource type or action.",
-                "The request contains an unsupported resource type or action. Only 'workflow_run' resource type and 'workflow_run.completed' action are supported."),
+                "The request contains an unsupported resource type or action. " +
+                        "Only 'workflow_run' resource type and 'workflow_run.completed' action are supported."),
         CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT("60004",
                 "Invalid workflow output.",
-                "The request contains an invalid workflow output format. Ensure that the workflow is configured to include the document report's data comparison results in the output."),
+                "The request contains an invalid workflow output format. Ensure that the workflow is " +
+                        "configured to include the document report's data comparison results in the output."),
         CLIENT_ERROR_INVALID_REQUEST("60005",
                 "Invalid request payload.",
                 "The request payload contains invalid input, such as an invalid workflow run ID.");

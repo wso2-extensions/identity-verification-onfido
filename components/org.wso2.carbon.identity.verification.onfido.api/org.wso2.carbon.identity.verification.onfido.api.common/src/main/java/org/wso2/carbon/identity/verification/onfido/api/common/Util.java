@@ -35,7 +35,7 @@ public class Util {
     public static String getCorrelation() {
 
         if (isCorrelationIDPresent()) {
-            return MDC.get(Constants.CORRELATION_ID_MDC).toString();
+            return MDC.get(Constants.CORRELATION_ID_MDC);
         }
         return UUID.randomUUID().toString();
     }

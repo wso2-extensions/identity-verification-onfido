@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.wso2.carbon.extension.identity.verification.mgt.AbstractIdentityVerifier;
-import org.wso2.carbon.extension.identity.verification.mgt.IdentityVerifier;
 import org.wso2.carbon.extension.identity.verification.mgt.exception.IdentityVerificationClientException;
 import org.wso2.carbon.extension.identity.verification.mgt.exception.IdentityVerificationException;
 import org.wso2.carbon.extension.identity.verification.mgt.exception.IdentityVerificationServerException;
@@ -53,8 +52,8 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CLAIM_VALUE_NOT_EXIST;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_ALREADY_INITIATED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_FLOW_STATUS_NOT_FOUND;
@@ -72,7 +71,7 @@ import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMe
 /**
  * This class contains the implementation of OnfidoIdentityVerifier.
  */
-public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements IdentityVerifier {
+public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
 
     private static final Log log = LogFactory.getLog(OnfidoIdentityVerifier.class);
 
@@ -131,7 +130,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
      * Initiates the Onfido verification process for a user.
      *
      * @param userId                      The unique identifier of the user
-     * @param identityVerifierData        Data required for identity verification that was passed via the verification request
+     * @param identityVerifierData        Data required for identity verification that was passed via the
+     *                                    verification request
      * @param tenantId                    The ID of the tenant
      * @param idVProvider                 The identity verification provider
      * @param idVProviderConfigProperties Configuration properties for the identity verification provider
@@ -165,7 +165,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
 
                     applicantId = (String) onFidoJsonObject.get(ID);
                 } else {
-                    OnfidoAPIClient.updateApplicant(idVProviderConfigProperties, applicantRequestBody);
+                    OnfidoAPIClient.updateApplicant(idVProviderConfigProperties, applicantRequestBody, applicantId);
                 }
 
                 // Create a new workflow run for the applicant
@@ -206,7 +206,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             }
         } catch (OnfidoServerException e) {
             throw new IdentityVerificationServerException(ERROR_INITIATING_ONFIDO_VERIFICATION.getCode(),
-                    ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage());
+                    String.format(ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage(), userId));
         }
         return verificationRequiredClaims;
     }
@@ -237,8 +237,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
         List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
 
         for (IdVClaim idVClaim : verificationRequiredClaims) {
-            idVClaim = OnfidoIDVDataHolder.getInstance()
-                    .getIdentityVerificationManager()
+            idVClaim = OnfidoIDVDataHolder.getIdentityVerificationManager()
                     .getIdVClaim(userId, idVClaim.getClaimUri(), idVProvider.getIdVProviderUuid(), tenantId);
 
             if (!idVClaim.isVerified()) {
@@ -298,9 +297,10 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
     }
 
     /**
-     * Retrieves a map of Onfido claim names to their corresponding values for WSO2 claims that have not yet been verified.
-     * This method filters out claims that have already been associated with an Onfido applicant ID, ensuring that only
-     * unverified claims are processed. It queries the user store to fetch the values of these claims for a specified user.
+     * Retrieves a map of Onfido claim names to their corresponding values for WSO2 claims that have not yet been
+     * verified. This method filters out claims that have already been associated with an Onfido applicant ID,
+     * ensuring that only unverified claims are processed. It queries the user store to fetch the values of these
+     * claims for a specified user.
      *
      * @param userId                   The unique identifier of the user
      * @param tenantId                 The ID of the tenant
@@ -320,9 +320,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
 
             for (IdVClaim idVClaim : verificationRequiredClaims) {
                 String claimUri = idVClaim.getClaimUri();
-                idVClaim = OnfidoIDVDataHolder.getInstance().
-                        getIdentityVerificationManager().getIdVClaim(userId, idVClaim.getClaimUri(),
-                                idVProvider.getIdVProviderUuid(), tenantId);
+                idVClaim = OnfidoIDVDataHolder.getIdentityVerificationManager()
+                        .getIdVClaim(userId, idVClaim.getClaimUri(), idVProvider.getIdVProviderUuid(), tenantId);
 
                 if (idVClaim == null || idVClaim.getMetadata() == null ||
                         idVClaim.getMetadata().get(ONFIDO_APPLICANT_ID) == null) {
@@ -378,8 +377,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             throws IdentityVerificationException {
 
         String applicantId = null;
-        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getInstance().getIdentityVerificationManager().
-                getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
+        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getIdentityVerificationManager()
+                .getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
         for (IdVClaim idVClaim : idVClaims) {
             if (idVClaim != null && idVClaim.getMetadata() != null &&
                     idVClaim.getMetadata().get(ONFIDO_APPLICANT_ID) != null && !idVClaim.isVerified()) {
@@ -404,8 +403,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
             throws IdentityVerificationException {
 
         String workFlowRunId = null;
-        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getInstance().getIdentityVerificationManager().
-                getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
+        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getIdentityVerificationManager()
+                .getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
         for (IdVClaim idVClaim : idVClaims) {
             if (idVClaim != null && idVClaim.getMetadata() != null &&
                     idVClaim.getMetadata().get(ONFIDO_WORKFLOW_RUN_ID) != null && !idVClaim.isVerified()) {
@@ -472,13 +471,14 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
      *
      * @param tenantId The ID of the tenant.
      * @return An instance of UniqueIDUserStoreManager if the user store manager is of the correct type.
-     * @throws IdentityVerificationServerException If the UserStoreManager is not an instance of UniqueIDUserStoreManager.
+     * @throws IdentityVerificationServerException If the UserStoreManager is not an instance of
+     *                                             UniqueIDUserStoreManager.
      * @throws UserStoreException                  If there is a failure in retrieving the UserStoreManager.
      */
     private UniqueIDUserStoreManager getUniqueIdEnabledUserStoreManager(int tenantId)
             throws IdentityVerificationServerException, UserStoreException {
 
-        RealmService realmService = OnfidoIDVDataHolder.getInstance().getRealmService();
+        RealmService realmService = OnfidoIDVDataHolder.getRealmService();
         UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
         if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
             throw IdentityVerificationExceptionMgt.handleServerException(ERROR_GETTING_USER_STORE);
@@ -489,7 +489,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier implements 
     /**
      * Validates the configuration properties for an identity verification provider.
      *
-     * @param idVProviderConfigProperties A map containing the configuration properties for the identity verification provider.
+     * @param idVProviderConfigProperties A map containing the configuration properties for the
+     *                                    identity verification provider.
      * @throws IdentityVerificationServerException If the configuration properties are incomplete or invalid.
      */
     private void validateIdVProviderConfigProperties(Map<String, String> idVProviderConfigProperties)

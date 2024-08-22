@@ -300,17 +300,10 @@
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>${spotbugs-maven-plugin.version}</version>
                     <configuration>
+                        <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                         <effort>Max</effort>
-                        <threshold>Medium</threshold>
-                        <failOnError>true</failOnError>
-                        <maxHeap>1024</maxHeap>
-                        <plugins>
-                            <plugin>
-                                <groupId>com.h3xstream.findsecbugs</groupId>
-                                <artifactId>findsecbugs-plugin</artifactId>
-                                <version>${findsecbugs-plugin.version}</version>
-                            </plugin>
-                        </plugins>
+                        <threshold>Low</threshold>
+                        <xmlOutput>true</xmlOutput>
                     </configuration>
                     <executions>
                         <execution>
@@ -407,7 +400,7 @@
         <org.eclipse.osgi.version>3.9.1.v20130814-1242</org.eclipse.osgi.version>
         <jackson-databind.version>2.10.5</jackson-databind.version>
         <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
-        <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
+        <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <apache.common.collections4.version>4.1</apache.common.collections4.version>
         <pax.logging.version>1.10.1</pax.logging.version>
         <org.json.version>20230227</org.json.version>
@@ -427,6 +420,8 @@
         <carbon.identity.package.import.version.range>[5.14.67, 8.0.0)</carbon.identity.package.import.version.range>
         <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <identity.verification.package.version.range>[1.0.0, 2.0.0)</identity.verification.package.version.range>
+        <httpcomponents-httpclient.imp.pkg.version.range>[4.5.13.wso2v1,5.0.0)
+        </httpcomponents-httpclient.imp.pkg.version.range>
         <jackson-jaxrs-json-provider.version>2.13.2</jackson-jaxrs-json-provider.version>
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
         <jackson-dataformat-xml.version>2.13.2</jackson-dataformat-xml.version>
@@ -439,8 +434,7 @@
         <maven.war.plugin.version>2.2</maven.war.plugin.version>
         <build.helper.maven.plugin.version>1.8</build.helper.maven.plugin.version>
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
-        <spotbugs-maven-plugin.version>4.1.3</spotbugs-maven-plugin.version>
-        <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
+        <spotbugs-maven-plugin.version>4.8.4.0</spotbugs-maven-plugin.version>
 
         <compiler-source.version>1.8</compiler-source.version>
         <compiler-target.version>1.8</compiler-target.version>
