@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.extension.identity.verification.mgt.utils.IdentityVerificationConstants.ErrorMessage.ERROR_GETTING_USER_STORE;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICANT_ID;
@@ -57,7 +59,6 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATION_NOT_ALLOWED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID;
@@ -109,7 +110,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             case REINITIATED:
                  // Resends the SDK token for claims with AWAITING_INPUT status.
                  // This reinitiates the Onfido SDK flow for incomplete verifications.
-                idVClaims = reinitiateOnfidoVerification(identityVerifierData, idVProvider,
+                idVClaims = reinitiateOnfidoVerification(userId, identityVerifierData, idVProvider,
                         idVProviderConfigProperties, tenantId);
                 break;
             default:
@@ -141,13 +142,16 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
         // Retrieve the list of WSO2 claims that need to be verified.
         List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
 
+        List<IdVClaim> claimsToUpdate = new ArrayList<>();
+
         // The applicant need to be created per user. Hence, if there is already an applicant ID
         // associated with the user, retrieve it. This ID is unique per user in the Onfido system.
         String applicantId = getApplicantId(userId, tenantId, idVProvider);
 
         // Get the map of Onfido claim names and values for the wso2 claims that haven't initiated verification yet.
         Map<String, String> unverifiedOnfidoClaimsWithValueMap =
-                getUnverifiedOnfidoClaimsWithValueMap(userId, tenantId, idVProvider, verificationRequiredClaims);
+                getUnverifiedOnfidoClaimsWithValueMap(userId, tenantId, idVProvider, verificationRequiredClaims,
+                        claimsToUpdate);
         if (unverifiedOnfidoClaimsWithValueMap.isEmpty()) {
             throw new IdentityVerificationException(ERROR_VERIFICATION_ALREADY_INITIATED.getCode(),
                     ERROR_VERIFICATION_ALREADY_INITIATED.getMessage());
@@ -162,16 +166,10 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             String workflowRunId = createWorkflowRun(idVProviderConfigProperties, applicantId);
             String sdkToken = createSdkToken(idVProviderConfigProperties, applicantId);
 
-            // Update the metadata of each claim to include the onfido verification process related information.
+            // Update the metadata of each claim to include the Onfido verification process information and
+            // persist the changes in the database.
             Map<String, Object> metadata = getInitiatedVerificationMetadata(applicantId, workflowRunId);
-            for (IdVClaim idVClaim : verificationRequiredClaims) {
-                idVClaim.setIsVerified(false);
-                idVClaim.setUserId(userId);
-                idVClaim.setIdVPId(idVProvider.getIdVProviderUuid());
-                idVClaim.setMetadata(metadata);
-            }
-            // Persist the updated claims in the database.
-            storeIdVClaims(userId, verificationRequiredClaims, tenantId);
+            updateAndStoreClaims(userId, tenantId, idVProvider, verificationRequiredClaims, claimsToUpdate, metadata);
 
             /* Since storing the SDK token in the database, is not required, it will be added after storing the IDV
             claims. The SDK token will be returned for the verification initiation response in order to render the
@@ -204,8 +202,8 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
                                                       Map<String, String> idVProviderConfigProperties, int tenantId)
             throws IdentityVerificationException {
 
-        // Get workflow run ID from identity verifier data and check the status.
-        String workflowRunId = getWorkFlowRunId(identityVerifierData);
+        // Extract workflow run ID and check the status.
+        String workflowRunId = getWorkFlowRunId(userId, tenantId, idVProvider, identityVerifierData);
         OnfidoConstants.WorkflowRunStatus
                 workflowRunStatus = getWorkflowRunStatusFromAPI(workflowRunId, idVProviderConfigProperties);
 
@@ -238,13 +236,13 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      * @throws IdentityVerificationException If there's an error during the reinitiation process or if
      *                                       the current state is not 'AWAITING_INPUT'.
      */
-    private List<IdVClaim> reinitiateOnfidoVerification(IdentityVerifierData identityVerifierData,
+    private List<IdVClaim> reinitiateOnfidoVerification(String userId, IdentityVerifierData identityVerifierData,
                                                         IdVProvider idVProvider,
                                                         Map<String, String> idVProviderConfigProperties, int tenantId)
             throws IdentityVerificationException {
 
-        // Get workflow run ID from identity verifier data.
-        String workflowRunId = getWorkFlowRunId(identityVerifierData);
+        // Extract workflow run ID.
+        String workflowRunId = getWorkFlowRunId(userId, tenantId, idVProvider, identityVerifierData);
 
         // Retrieve IdVClaims associated with the workflow run ID.
         List<IdVClaim> idVClaims = getIdVClaimsByWorkflowRunId(workflowRunId, idVProvider.getIdVProviderUuid(),
@@ -480,22 +478,27 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
 
     /**
      * Retrieves unverified Onfido claims with their values for a specified user.
+     * <p>
+     * This method handles a list of verification-required claims for a given user. It performs the following tasks:
+     * 1. Filters out claims already associated with an Onfido applicant ID. For the remaining claims,
+     * it fetches their values from the user store.
+     * 2. Identifies existing claims that need to be updated.
+     * 3. Creates and return a map of Onfido claim names to their corresponding user store values.
      *
-     * This method processes a list of verification-required claims for a given user.
-     * It filters out claims that are already associated with an Onfido applicant ID. For the remaining
-     * claims, it fetches their values from the user store. The method returns a map where the keys are
-     * Onfido claim names and the values are the corresponding claim values from the user store.
-     *
-     * @param userId                   The unique identifier of the user.
-     * @param tenantId                 The ID of the tenant.
-     * @param idVProvider              The identity verification provider.
+     * @param userId                     The unique identifier of the user.
+     * @param tenantId                   The ID of the tenant.
+     * @param idVProvider                The identity verification provider.
      * @param verificationRequiredClaims List of claims that require verification.
-     * @return A map of Onfido claim names to their values for claims that need verification
-     * @throws IdentityVerificationException if there is an error retrieving the claim values or mappings.
+     * @param claimsToUpdate             Output parameter: List to be populated with claims that need updating.
+     * @return A map where keys are Onfido claim names and values are the corresponding claim values
+     * from the user store.
+     * @throws IdentityVerificationException if there's an error retrieving claim values, mappings,
+     *                                       or processing claims.
      */
     private Map<String, String> getUnverifiedOnfidoClaimsWithValueMap(String userId, int tenantId,
                                                                       IdVProvider idVProvider,
-                                                                      List<IdVClaim> verificationRequiredClaims)
+                                                                      List<IdVClaim> verificationRequiredClaims,
+                                                                      List<IdVClaim> claimsToUpdate)
             throws IdentityVerificationException {
 
         Map<String, String> idVProviderClaimWithValueMap = new HashMap<>();
@@ -505,17 +508,20 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
 
             for (IdVClaim idVClaim : verificationRequiredClaims) {
                 String claimUri = idVClaim.getClaimUri();
-                idVClaim = OnfidoIDVDataHolder.getIdentityVerificationManager()
+                IdVClaim existingIdVClaim = OnfidoIDVDataHolder.getIdentityVerificationManager()
                         .getIdVClaim(userId, idVClaim.getClaimUri(), idVProvider.getIdVProviderUuid(), tenantId);
 
-                if (idVClaim == null || idVClaim.getMetadata() == null ||
-                        idVClaim.getMetadata().get(ONFIDO_APPLICANT_ID) == null) {
+                if (existingIdVClaim == null || existingIdVClaim.getMetadata() == null ||
+                        existingIdVClaim.getMetadata().get(ONFIDO_APPLICANT_ID) == null) {
                     String claimValue = uniqueIDUserStoreManager.getUserClaimValueWithID(userId, claimUri, null);
                     if (StringUtils.isEmpty(claimValue)) {
                         throw new IdentityVerificationClientException(ERROR_CLAIM_VALUE_NOT_EXIST.getCode(),
                                 String.format(ERROR_CLAIM_VALUE_NOT_EXIST.getMessage(), claimUri));
                     }
                     idVProviderClaimWithValueMap.put(idVClaimMap.get(claimUri), claimValue);
+                }
+                if (existingIdVClaim != null) {
+                    claimsToUpdate.add(existingIdVClaim);
                 }
             }
         } catch (UserStoreException e) {
@@ -549,6 +555,51 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
     }
 
     /**
+     * Updates existing claims and stores new claims for identity verification.
+     *
+     * @param userId                     The unique identifier of the user.
+     * @param tenantId                   The ID of the tenant.
+     * @param idVProvider                The identity verification provider.
+     * @param verificationRequiredClaims List of all claims that require verification.
+     * @param claimsToUpdate             List of existing claims that need to be updated.
+     * @param metadata                   Additional metadata to be associated with the claims specific to Onfido.
+     * @throws IdentityVerificationException if there's an error updating or storing claims.
+     */
+    private void updateAndStoreClaims(String userId, int tenantId, IdVProvider idVProvider,
+                                      List<IdVClaim> verificationRequiredClaims, List<IdVClaim> claimsToUpdate,
+                                      Map<String, Object> metadata) throws IdentityVerificationException {
+
+        // Create a set of claim URIs of the IdV claims that already existing in the DB.
+        Set<String> updateClaimUris = claimsToUpdate.stream()
+                .map(IdVClaim::getClaimUri)
+                .collect(Collectors.toSet());
+
+        // Update metadata for existing IdV claims
+        for (IdVClaim claim : claimsToUpdate) {
+            claim.setIsVerified(false);
+            claim.setMetadata(metadata);
+            updateIdVClaim(userId, claim, tenantId);
+        }
+
+        List<IdVClaim> claimsToStore = new ArrayList<>();
+
+        for (IdVClaim claim : verificationRequiredClaims) {
+            if (!updateClaimUris.contains(claim.getClaimUri())) {
+                claim.setIsVerified(false);
+                claim.setUserId(userId);
+                claim.setIdVPId(idVProvider.getIdVProviderUuid());
+                claim.setMetadata(metadata);
+                claimsToStore.add(claim);
+            }
+        }
+
+        // Store new IdV claims
+        if (!claimsToStore.isEmpty()) {
+            storeIdVClaims(userId, claimsToStore, tenantId);
+        }
+    }
+
+    /**
      * Retrieves the applicant ID from the metadata of an existing identity verification claim associated
      * with the given user and identity verification provider.
      *
@@ -575,16 +626,39 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
     }
 
     /**
-     * Retrieves the workflow run ID from the identity verifier data.
+     * Retrieves the workflow run ID from the metadata of an existing identity verification claim associated
+     * with the given user and identity verification provider.
      *
+     * @param userId               The unique identifier of the user whose applicant ID is being retrieved.
+     * @param tenantId             The ID of the tenant.
+     * @param idVProvider          The identity verification provider.
      * @param identityVerifierData Data required for identity verification that was passed via the verification request.
-     * @return The workflow run ID.
-     * @throws IdentityVerificationClientException If the workflow run ID is not found.
+     * @return The applicant ID if found, otherwise returns null.
+     * @throws IdentityVerificationException If there is an error accessing the claims.
      */
-    private String getWorkFlowRunId(IdentityVerifierData identityVerifierData)
-            throws IdentityVerificationClientException {
+    private static String getWorkFlowRunId(String userId, int tenantId, IdVProvider idVProvider,
+                                           IdentityVerifierData identityVerifierData)
+            throws IdentityVerificationException {
 
-        return getPropertyValue(identityVerifierData, ONFIDO_WORKFLOW_RUN_ID, ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND);
+        // Retrieve the claim URIs of the wso2 claims that need to be verified.
+        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+        Set<String> verificationRequiredClaimsUri = verificationRequiredClaims.stream()
+                .map(IdVClaim::getClaimUri)
+                .collect(Collectors.toSet());
+
+        String workflowRunId = null;
+        IdVClaim[] idVClaims = OnfidoIDVDataHolder.getIdentityVerificationManager()
+                .getIdVClaims(userId, idVProvider.getIdVProviderUuid(), null, tenantId);
+        for (IdVClaim idVClaim : idVClaims) {
+            if (idVClaim != null && idVClaim.getMetadata() != null &&
+                    idVClaim.getMetadata().get(ONFIDO_WORKFLOW_RUN_ID) != null &&
+                            verificationRequiredClaimsUri.contains(idVClaim.getClaimUri())) {
+
+                workflowRunId = (String) idVClaim.getMetadata().get(ONFIDO_WORKFLOW_RUN_ID);
+                break;
+            }
+        }
+        return workflowRunId;
     }
 
     /**
