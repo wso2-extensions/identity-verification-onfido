@@ -91,8 +91,8 @@ public class OnfidoConstants {
      */
     public enum ErrorMessage {
 
-        ERROR_VERIFICATION_FLOW_STATUS_NOT_FOUND("10000",
-                "Verification flow status is not defined in the request"),
+        ERROR_SDK_FLOW_STATUS_NOT_FOUND("10000",
+                "Verification SDK flow status is missing or undefined in the request"),
         ERROR_IDENTITY_VERIFICATION("10001",
                 "Error while verifying the user identity through Onfido."),
         ERROR_CLAIM_VALUE_NOT_EXIST("10002",
@@ -115,7 +115,8 @@ public class OnfidoConstants {
         ERROR_CREATING_HTTP_CLIENT("10012", "Server error encountered while creating http client"),
         ERROR_UPDATING_ONFIDO_APPLICANT("10013",
                 "The applicant updating in the Onfido failed with the response %s."),
-        ERROR_GETTING_HTTP_CLIENT("10014", "Error preparing http client to publish events."),
+        ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND("10014", "Onfido workflow run ID is not defined in the " +
+                "request."),
         ERROR_GETTING_ONFIDO_WORKFLOW_STATUS("10015",
                 "Error while retrieving the Onfido workflow status."),
         ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10016",
@@ -147,8 +148,13 @@ public class OnfidoConstants {
         ERROR_BUILDING_ONFIDO_APPLICANT_UPDATE_URI("10029", "Error occurred while building URI for " +
                 "updating Onfido applicant."),
         ERROR_BUILDING_WORKFLOW_RUN_GET_URI("10030", "Error occurred while building URI for " +
-                "retrieving Onfido workflow run status.");
-
+                "retrieving Onfido workflow run status."),
+        ERROR_APPLICANT_ID_NOT_FOUND("10031", "Applicant ID not found in claim metadata."),
+        ERROR_REINITIATING_ONFIDO_VERIFICATION("10032", "An error occurred while reinitiating" +
+                " the verification. This could be due to issues with retrieving necessary data " +
+                "(such as SDK token, workflow run ID, or applicant ID)."),
+        ERROR_REINITIATION_NOT_ALLOWED("10033", "Reinitiation not allowed. Current workflow status" +
+                " is not 'AWAITING_INPUT'. Reinitiation is only permitted for claims with 'AWAITING_INPUT' status.");
         private final String code;
         private final String message;
 
@@ -188,7 +194,13 @@ public class OnfidoConstants {
         /**
          * Indicates that the SDK flow has been successfully completed.
          */
-        COMPLETED("COMPLETED");
+        COMPLETED("COMPLETED"),
+
+        /**
+         * Indicates that the SDK flow has been initiated previously and now requires reinitiation
+         * to obtain the SDK token.
+         */
+        REINITIATED("REINITIATED");
 
         private final String status;
 
