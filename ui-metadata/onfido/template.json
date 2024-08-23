@@ -16,18 +16,19 @@
   "configProperties": [
     {
       "key": "token",
-      "value": "",
-      "isSecret": true
-    },
-    {
-      "key": "base_url",
-      "value": "https://api.eu.onfido.com/v3.6",
-      "isSecret": false
+      "value": ""
     },
     {
       "key": "webhook_token",
-      "value": "",
-      "isSecret": true
+      "value": ""
+    },
+    {
+      "key": "workflow_id",
+      "value": ""
+    },
+    {
+      "key": "base_url",
+      "value": "https://api.eu.onfido.com/v3.6"
     }
   ]
 }
