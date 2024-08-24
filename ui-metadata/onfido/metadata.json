@@ -1,50 +1,151 @@
 {
-  "common": {
-      "configProperties": [
-        {
-          "name": "token",
-          "displayOrder": 1,
-          "hint": "The API token generated via the Onfido dashboard.",
-          "label": "API Token",
-          "type": "password",
-          "required": true,
-          "isSecret": true,
-          "dataComponentId": "idvp-edit-config-settings-token",
-          "maxLength": 100
-        },
-        {
-          "name": "webhook_token",
-          "displayOrder": 2,
-          "hint": "The webhook token generated via the Onfido dashboard.",
-          "label": "Webhook Token",
-          "type": "password",
-          "required": true,
-          "isSecret": true,
-          "dataComponentId": "idvp-edit-config-settings-webhook-token",
-          "maxLength": 100
-        },
-        {
-          "name": "workflow_id",
-          "displayOrder": 3,
-          "hint": "The unique identifier for the Workflow generated via the Onfido dashboard.",
-          "label": "Workflow ID",
-          "type": "text",
-          "required": true,
-          "isSecret": false,
-          "dataComponentId": "idvp-edit-config-settings-workflow_id",
-          "maxLength": 100
-        },
-        {
-          "name": "base_url",
-          "displayOrder": 4,
-          "hint": "The base URL of Onfido server.",
-          "label": "Base URL",
-          "type": "url",
-          "defaultValue": "https://api.eu.onfido.com/v3.6",
-          "required": true,
-          "isSecret": false,
-          "dataComponentId": "idvp-edit-config-settings-base-url"
-        }
-      ]
-  }
+	"create": {
+		"form": {
+			"fields": [
+				{
+					"id": "idvp-name",
+					"ariaLabel": "IdVP Name",
+					"name": "name",
+					"label": "Name",
+					"type": "text",
+					"required": true,
+					"placeholder": "My Identity Verification Provider",
+					"data-componentid": "idvp-create-wizard-idvp-name",
+					"validators": [
+						"uniqueValueValidator"
+					],
+					"helperText": "An unique name for the Identity Verification Provider."
+				},
+				{
+					"id": "token",
+					"aria-label": "API Token",
+					"name": "token",
+					"label": "API Token",
+					"type": "password",
+					"required": true,
+					"data-componentid": "idvp-create-wizard-api-token",
+					"helperText": "The API Token obtained from OnFido Dashboard."
+				},
+				{
+					"id": "workflow_id",
+					"aria-label": "Workflow ID",
+					"name": "workflow_id",
+					"label": "Workflow ID",
+					"type": "text",
+					"required": true,
+					"data-componentid": "idvp-create-wizard-workflow-id",
+					"helperText": "The identifier of the workflow configured in OnFido Dashboard."
+				},
+				{
+					"id": "base_url",
+					"aria-label": "Base URL",
+					"name": "base_url",
+					"label": "Base URL",
+					"type": "text",
+					"required": true,
+					"defaultValue": "https://api.eu.onfido.com/v3.6",
+					"data-componentid": "idvp-create-wizard-base-url",
+					"helperText": "The regional base URL performing OnFido API calls."
+				}
+			]
+		}
+	},
+	"edit": {
+		"tabs": [
+			{
+				"id": "guide",
+				"displayName": "Setup Guide",
+				"contentType": "guide"
+			},
+			{
+				"id": "general",
+				"displayName": "General",
+				"contentType": "form",
+				"form": {
+					"fields": [
+						{
+							"id": "idvp-name",
+							"ariaLabel": "IdVP Name",
+							"name": "name",
+							"label": "Name",
+							"type": "text",
+							"required": true,
+							"placeholder": "My Identity Verification Provider",
+							"data-componentid": "idvp-edit-form-idvp-name",
+							"validators": [
+								"uniqueValueValidator"
+							],
+							"helperText": "An unique name for the Identity Verification Provider."
+						},
+						{
+							"id": "idvp-description",
+							"ariaLabel": "IdVP Description",
+							"name": "description",
+							"label": "Description",
+							"type": "text",
+							"required": false,
+							"placeholder": "My Identity Verification Provider",
+							"data-componentid": "idvp-edit-form-idvp-description",
+							"helperText": "A description that will help to identify the Identity Verification Provider."
+						}
+					]
+				}
+			},
+			{
+				"id": "settings",
+				"displayName": "Settings",
+				"contentType": "form",
+				"form": {
+					"fields": [
+						{
+							"id": "token",
+							"aria-label": "API Token",
+							"name": "token",
+							"label": "API Token",
+							"type": "password",
+							"required": true,
+							"data-componentid": "idvp-edit-form-api-token",
+							"helperText": "The API Token obtained from OnFido Dashboard."
+						},
+						{
+							"id": "webhook_token",
+							"aria-label": "Webhook Token",
+							"name": "webhook_token",
+							"label": "Webhook Token",
+							"type": "password",
+							"required": true,
+							"data-componentid": "idvp-edit-form-webhook-token",
+							"helperText": "The Webhook Token obtained from OnFido Dashboard. Check the Setup Guide for more details."
+						},
+						{
+							"id": "workflow_id",
+							"aria-label": "Workflow ID",
+							"name": "workflow_id",
+							"label": "Workflow ID",
+							"type": "text",
+							"required": true,
+							"data-componentid": "idvp-edit-form-workflow-id",
+							"helperText": "The identifier of the configured OnFido workflow."
+						},
+						{
+							"id": "base_url",
+							"aria-label": "Base URL",
+							"name": "base_url",
+							"label": "Base URL",
+							"type": "text",
+							"required": true,
+							"defaultValue": "https://api.eu.onfido.com/v3.6",
+							"data-componentid": "idvp-edit-form-base-url",
+							"helperText": "The base URL of OnFido server."
+						}
+					]
+				}
+			},
+			{
+				"id": "attributes",
+				"displayName": "Attributes"
+			}
+		],
+		"defaultActiveTabId": "general"
+	}
 }
