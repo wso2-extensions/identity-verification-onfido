@@ -58,12 +58,14 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATION_NOT_ALLOWED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SDK_FLOW_STATUS_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_ALREADY_INITIATED;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_FLOW_STATUS_NOT_FOUND;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_VERIFICATION_REQUIRED_CLAIMS_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_APPLICANT_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_WORKFLOW_RUN_ID;
@@ -92,30 +94,30 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
         // Retrieve identity verification provider's configurations.
         Map<String, String> idVProviderConfigProperties = getValidatedIdVConfigProperties(idVProvider);
 
-        // Extract the sdk flow status sent via the verification request.
-        OnfidoConstants.OnFidoSdkFlowStatus sdkFlowStatus = getSdkFlowStatus(identityVerifierData);
+        // Extract the verification flow status sent via the verification request.
+        OnfidoConstants.VerificationFlowStatus verificationFlowStatus = getVerificationFlowStatus(identityVerifierData);
         List<IdVClaim> idVClaims;
 
-        switch (sdkFlowStatus) {
+        switch (verificationFlowStatus) {
             case INITIATED:
                 // Initiate Onfido verification through creating/updating applicant and retrieving sdk token.
                 idVClaims = initiateOnfidoVerification(userId, identityVerifierData, idVProvider,
                         idVProviderConfigProperties, tenantId);
                 break;
             case COMPLETED:
-                // Complete the onfido sdk flow by updating the workflow run status.
+                // Complete the onfido verification flow by updating the workflow run status.
                 idVClaims = completeOnfidoVerification(userId, identityVerifierData, idVProvider,
                         idVProviderConfigProperties, tenantId);
                 break;
             case REINITIATED:
                  // Resends the SDK token for claims with AWAITING_INPUT status.
-                 // This reinitiates the Onfido SDK flow for incomplete verifications.
+                 // This reinitiates the Onfido verification flow for incomplete verifications.
                 idVClaims = reinitiateOnfidoVerification(userId, identityVerifierData, idVProvider,
                         idVProviderConfigProperties, tenantId);
                 break;
             default:
-                throw new IdentityVerificationClientException(ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getCode(),
-                        ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getMessage());
+                throw new IdentityVerificationClientException(ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getCode(),
+                        ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getMessage());
         }
         identityVerifierData.setIdVClaims(idVClaims);
         return identityVerifierData;
@@ -140,7 +142,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             throws IdentityVerificationException {
 
         // Retrieve the list of WSO2 claims that need to be verified.
-        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+        List<IdVClaim> verificationRequiredClaims = getVerificationRequiredClaims(identityVerifierData);
 
         List<IdVClaim> claimsToUpdate = new ArrayList<>();
 
@@ -153,7 +155,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
                 getUnverifiedOnfidoClaimsWithValueMap(userId, tenantId, idVProvider, verificationRequiredClaims,
                         claimsToUpdate);
         if (unverifiedOnfidoClaimsWithValueMap.isEmpty()) {
-            throw new IdentityVerificationException(ERROR_VERIFICATION_ALREADY_INITIATED.getCode(),
+            throw new IdentityVerificationClientException(ERROR_VERIFICATION_ALREADY_INITIATED.getCode(),
                     ERROR_VERIFICATION_ALREADY_INITIATED.getMessage());
         }
 
@@ -203,7 +205,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             throws IdentityVerificationException {
 
         // Extract workflow run ID and check the status.
-        String workflowRunId = getWorkFlowRunId(userId, tenantId, idVProvider, identityVerifierData);
+        String workflowRunId = getWorkflowRunId(userId, tenantId, idVProvider, identityVerifierData);
         OnfidoConstants.WorkflowRunStatus
                 workflowRunStatus = getWorkflowRunStatusFromAPI(workflowRunId, idVProviderConfigProperties);
 
@@ -242,7 +244,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             throws IdentityVerificationException {
 
         // Extract workflow run ID.
-        String workflowRunId = getWorkFlowRunId(userId, tenantId, idVProvider, identityVerifierData);
+        String workflowRunId = getWorkflowRunId(userId, tenantId, idVProvider, identityVerifierData);
 
         // Retrieve IdVClaims associated with the workflow run ID.
         List<IdVClaim> idVClaims = getIdVClaimsByWorkflowRunId(workflowRunId, idVProvider.getIdVProviderUuid(),
@@ -278,14 +280,14 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      * @param identityVerifierData Data required for identity verification that was passed via the verification request.
      * @param tenantId             The ID of the tenant.
      * @return A validated IdVProvider object.
-     * @throws IdentityVerificationException If the idv provider is null, disabled, or invalid.
+     * @throws IdentityVerificationClientException If the idv provider is null, disabled, or invalid.
      */
     private IdVProvider getValidatedIdVProvider(IdentityVerifierData identityVerifierData, int tenantId)
             throws IdentityVerificationException {
 
         IdVProvider idVProvider = getIdVProvider(identityVerifierData, tenantId);
         if (idVProvider == null || !idVProvider.isEnabled()) {
-            throw new IdentityVerificationException(ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getCode(),
+            throw new IdentityVerificationClientException(ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getCode(),
                     ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getMessage());
         }
         return idVProvider;
@@ -296,11 +298,11 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      *
      * @param idVProvider The Identity Verification Provider object.
      * @return A map of validated configuration properties.
-     * @throws IdentityVerificationException If the configuration properties are null, empty,
+     * @throws IdentityVerificationClientException If the configuration properties are null, empty,
      *                                       or missing required fields.
      */
     private Map<String, String> getValidatedIdVConfigProperties(IdVProvider idVProvider)
-            throws IdentityVerificationException {
+            throws IdentityVerificationClientException {
 
         Map<String, String> idVProviderConfigProperties = getIdVConfigPropertyMap(idVProvider);
         if (idVProviderConfigProperties == null || idVProviderConfigProperties.isEmpty() ||
@@ -308,10 +310,28 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
                 StringUtils.isBlank(idVProviderConfigProperties.get(BASE_URL)) ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(WEBHOOK_TOKEN)) ||
                 StringUtils.isBlank(idVProviderConfigProperties.get(WORKFLOW_ID))) {
-            throw new IdentityVerificationException(ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getCode(),
+            throw new IdentityVerificationClientException(ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getCode(),
                     ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY.getMessage());
         }
         return idVProviderConfigProperties;
+    }
+
+    /**
+     * Retrieves and validates the verification required claims.
+     *
+     * @param identityVerifierData Data required for identity verification that was passed via the verification request.
+     * @return @return A list of IdVClaim objects that require verification.
+     * @throws IdentityVerificationClientException If the list of verification-required claims is null or empty.
+     */
+    private static List<IdVClaim> getVerificationRequiredClaims(IdentityVerifierData identityVerifierData)
+            throws IdentityVerificationClientException {
+
+        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+        if (verificationRequiredClaims == null || verificationRequiredClaims.isEmpty()) {
+            throw new IdentityVerificationClientException(ERROR_VERIFICATION_REQUIRED_CLAIMS_NOT_FOUND.getCode(),
+                    ERROR_VERIFICATION_REQUIRED_CLAIMS_NOT_FOUND.getMessage());
+        }
+        return verificationRequiredClaims;
     }
 
     /**
@@ -636,12 +656,12 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      * @return The applicant ID if found, otherwise returns null.
      * @throws IdentityVerificationException If there is an error accessing the claims.
      */
-    private static String getWorkFlowRunId(String userId, int tenantId, IdVProvider idVProvider,
+    private static String getWorkflowRunId(String userId, int tenantId, IdVProvider idVProvider,
                                            IdentityVerifierData identityVerifierData)
             throws IdentityVerificationException {
 
         // Retrieve the claim URIs of the wso2 claims that need to be verified.
-        List<IdVClaim> verificationRequiredClaims = identityVerifierData.getIdVClaims();
+        List<IdVClaim> verificationRequiredClaims = getVerificationRequiredClaims(identityVerifierData);
         Set<String> verificationRequiredClaimsUri = verificationRequiredClaims.stream()
                 .map(IdVClaim::getClaimUri)
                 .collect(Collectors.toSet());
@@ -658,25 +678,30 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
                 break;
             }
         }
+
+        if (workflowRunId == null) {
+            throw new IdentityVerificationClientException(ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND.getCode(),
+                    ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND.getMessage());
+        }
         return workflowRunId;
     }
 
     /**
-     * Retrieves the SDK flow status from the identity verifier data.
+     * Retrieves the verification flow status from the identity verifier data.
      *
      * @param identityVerifierData Data required for identity verification that was passed via the verification request.
-     * @return The Onfido SDK flow status.
+     * @return The Onfido verification flow status.
      * @throws IdentityVerificationClientException If the flow status is not found or invalid.
      */
-    private OnfidoConstants.OnFidoSdkFlowStatus getSdkFlowStatus(IdentityVerifierData identityVerifierData)
+    private OnfidoConstants.VerificationFlowStatus getVerificationFlowStatus(IdentityVerifierData identityVerifierData)
             throws IdentityVerificationClientException {
 
-        String statusValue = getPropertyValue(identityVerifierData, STATUS, ERROR_SDK_FLOW_STATUS_NOT_FOUND);
+        String statusValue = getPropertyValue(identityVerifierData, STATUS, ERROR_VERIFICATION_FLOW_STATUS_NOT_FOUND);
         try {
-            return OnfidoConstants.OnFidoSdkFlowStatus.fromString(statusValue);
+            return OnfidoConstants.VerificationFlowStatus.fromString(statusValue);
         } catch (OnfidoClientException e) {
-            throw new IdentityVerificationClientException(ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getCode(),
-                    ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getMessage());
+            throw new IdentityVerificationClientException(ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getCode(),
+                    ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getMessage());
         }
     }
 

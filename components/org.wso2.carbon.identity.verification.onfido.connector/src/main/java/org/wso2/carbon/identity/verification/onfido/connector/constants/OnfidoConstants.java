@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_WORKFLOW_RUN_STATUS;
 
 /**
@@ -91,8 +91,8 @@ public class OnfidoConstants {
      */
     public enum ErrorMessage {
 
-        ERROR_SDK_FLOW_STATUS_NOT_FOUND("10000",
-                "Verification SDK flow status is missing or undefined in the request"),
+        ERROR_VERIFICATION_FLOW_STATUS_NOT_FOUND("10000",
+                "Verification flow status is missing or undefined in the request"),
         ERROR_IDENTITY_VERIFICATION("10001",
                 "Error while verifying the user identity through Onfido."),
         ERROR_CLAIM_VALUE_NOT_EXIST("10002",
@@ -115,8 +115,9 @@ public class OnfidoConstants {
         ERROR_CREATING_HTTP_CLIENT("10012", "Server error encountered while creating http client"),
         ERROR_UPDATING_ONFIDO_APPLICANT("10013",
                 "The applicant updating in the Onfido failed with the response %s."),
-        ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND("10014", "Onfido workflow run ID is not defined in the " +
-                "request."),
+        ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND("10014", "No associated Onfido workflow run found. " +
+                "Ensure that the verification process has been initiated before attempting to complete " +
+                "or reinitiate it."),
         ERROR_GETTING_ONFIDO_WORKFLOW_STATUS("10015",
                 "Error while retrieving the Onfido workflow status."),
         ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY("10016",
@@ -127,8 +128,8 @@ public class OnfidoConstants {
         ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION("10019",
                 "Unsupported Onfido resource type or action; only 'workflow_run' and " +
                         "'workflow_run.completed' are supported."),
-        ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS("10020",
-                "Invalid Onfido SDK flow status provided."),
+        ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS("10020",
+                "Invalid Onfido Verification flow status provided."),
         ERROR_INVALID_WORKFLOW_RUN_STATUS("10021",
                 "Invalid Onfido workflow run status provided."),
         ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID("10022",
@@ -154,7 +155,10 @@ public class OnfidoConstants {
                 " the verification. This could be due to issues with retrieving necessary data " +
                 "(such as SDK token, workflow run ID, or applicant ID)."),
         ERROR_REINITIATION_NOT_ALLOWED("10033", "Reinitiation not allowed. Current workflow status" +
-                " is not 'AWAITING_INPUT'. Reinitiation is only permitted for claims with 'AWAITING_INPUT' status.");
+                " is not 'AWAITING_INPUT'. Reinitiation is only permitted for claims with 'AWAITING_INPUT' status."),
+        ERROR_VERIFICATION_REQUIRED_CLAIMS_NOT_FOUND("10034", "Verification requested claims list " +
+                "cannot be empty. Make sure to provide the claims that need to be verified.");
+
         private final String code;
         private final String message;
 
@@ -182,34 +186,34 @@ public class OnfidoConstants {
     }
 
     /**
-     * Enum representing the various statuses that an SDK flow can transition through.
+     * Enum representing the various statuses that a verification flow can transition through.
      */
-    public enum OnFidoSdkFlowStatus {
+    public enum VerificationFlowStatus {
 
         /**
-         * Indicates that the SDK flow has been initiated but not yet completed.
+         * Indicates that the verification flow has been initiated.
          */
         INITIATED("INITIATED"),
 
         /**
-         * Indicates that the SDK flow has been successfully completed.
+         * Indicates that the verification flow has been successfully completed.
          */
         COMPLETED("COMPLETED"),
 
         /**
-         * Indicates that the SDK flow has been initiated previously and now requires reinitiation
+         * Indicates that the verification flow has been initiated previously and now requires reinitiation
          * to obtain the SDK token.
          */
         REINITIATED("REINITIATED");
 
         private final String status;
 
-        OnFidoSdkFlowStatus(String status) {
+        VerificationFlowStatus(String status) {
             this.status = status;
         }
 
         /**
-         * Retrieves the string representation of the SDK flow status.
+         * Retrieves the string representation of the verification flow status.
          *
          * @return The string status value.
          */
@@ -218,22 +222,22 @@ public class OnfidoConstants {
         }
 
         /**
-         * Converts a string value to the corresponding SdkFlowStatus enum.
+         * Converts a string value to the corresponding VerificationFlowStatus enum.
          * If the value does not match any known statuses, an exception is thrown.
          *
-         * @param status The string representation of the SDK flow status.
-         * @return The corresponding SdkFlowStatus enum value.
+         * @param status The string representation of the verification flow status.
+         * @return The corresponding VerificationFlowStatus enum value.
          * @throws OnfidoClientException If the status is invalid or not recognized.
          */
-        public static OnFidoSdkFlowStatus fromString(String status)
+        public static VerificationFlowStatus fromString(String status)
                 throws OnfidoClientException {
-            for (OnFidoSdkFlowStatus flowStatus : OnFidoSdkFlowStatus.values()) {
+            for (VerificationFlowStatus flowStatus : VerificationFlowStatus.values()) {
                 if (flowStatus.status.equalsIgnoreCase(status)) {
                     return flowStatus;
                 }
             }
-            throw new OnfidoClientException(ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getCode(),
-                    ERROR_INVALID_ONFIDO_SDK_FLOW_STATUS.getMessage());
+            throw new OnfidoClientException(ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getCode(),
+                    ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS.getMessage());
         }
 
         @Override
