@@ -17,11 +17,12 @@
  */
 
 import React, { FunctionComponent, useEffect, useState } from "react";
-import * as OnfidoServ from 'onfido-sdk-ui'
+import { Onfido } from 'onfido-sdk-ui'
 import { useNavigate, useLocation } from "react-router-dom";
 import { completeVerification, initiateVerification, reinitiateVerification } from "../api";
 import { IdVResponseInterface } from "../model/identity-verification";
 import { Footer, LoadingSpinner, NavBar } from "../components";
+import { Handle } from "onfido-sdk-ui/types/Onfido";
 
 interface VerifyPageProps {
     setVerificationInitiated?: (isInitiated: boolean) => void;
@@ -31,7 +32,7 @@ interface VerifyPageProps {
 export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(true);
-    const [onfidoInstance, setOnfidoInstance] = useState<OnfidoServ.SdkHandle | null>(null);
+    const [onfidoInstance, setOnfidoInstance] = useState<Handle | null>(null);
 
     const location = useLocation();
     const reinitiate = location.state?.reinitiate === true;
@@ -59,10 +60,10 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
                 throw new Error(`${missingItem} not found in the identity verification initiation response from the Identity server`);
             }
 
-            const instance = OnfidoServ.init({
+            const instance = Onfido.init({
                 useModal: false,
                 token,
-                onComplete: (data) => {
+                onComplete: (data: any) => {
                     completeVerification();
                     console.log('Verification completed', data);
                     navigate('/', { state: { idVerificationInitiated: true } });
