@@ -48,6 +48,7 @@ export interface ClaimVerificationStatus {
 export enum SdkFlowStatus {
     INITIATED = "INITIATED",
     COMPLETED = "COMPLETED",
+    REINITIATED = "REINITIATED"
 }
 
 // Workflow status enum

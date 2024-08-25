@@ -32,6 +32,10 @@ export const completeVerification = async (): Promise<IdVResponseInterface> => {
     return changeVerificationStatus(SdkFlowStatus.COMPLETED);
 }
 
+export const reinitiateVerification = async (): Promise<IdVResponseInterface> => {
+    return changeVerificationStatus(SdkFlowStatus.REINITIATED);
+}
+
 const changeVerificationStatus = async (status: SdkFlowStatus): Promise<IdVResponseInterface> => {
 
     const requestConfig: HttpRequestConfig = {

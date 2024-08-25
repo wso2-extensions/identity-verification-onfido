@@ -52,7 +52,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                 } else {
                     switch(status.workflowStatus) {
                         case WorkflowStatus.AWAITING_INPUT:
-                            setDrawerMessage("The verification is already initiated and awaiting for the user's document upload.");
+                            setDrawerMessage("Your age verification was interrupted. Please click the button below to continue.");
                             break;
                         case WorkflowStatus.PROCESSING:
                             setDrawerMessage("Your age verification is in progress. Please check back later.");
@@ -98,11 +98,11 @@ export const HomePage: FunctionComponent = (): ReactElement => {
         }
     }, [state?.isAuthenticated, navigate, checkVerificationStatus, location]);
 
-    const verifyAge = () => {
-        if (verificationStatus?.isVerified === undefined) {
-            navigate("/verify");
+    const handleVerifyAge = () => {
+        if (verificationStatus?.workflowStatus === WorkflowStatus.AWAITING_INPUT) {
+            navigate("/verify", { state: { reinitiate: true } });
         } else {
-            checkVerificationStatus();
+            navigate("/verify");
         }
     };
 
@@ -117,9 +117,9 @@ export const HomePage: FunctionComponent = (): ReactElement => {
             <AgeVerificationDrawer
                 isOpen={isDrawerOpen}
                 setIsOpen={setIsDrawerOpen}
-                verifyAge={verifyAge}
+                verifyAge={handleVerifyAge}
                 message={drawerMessage}
-                showButton={verificationStatus?.isVerified === undefined}
+                showButton={verificationStatus?.isVerified === undefined || verificationStatus?.workflowStatus === WorkflowStatus.AWAITING_INPUT}
             />
             <Footer />
         </>

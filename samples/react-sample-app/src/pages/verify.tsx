@@ -18,8 +18,8 @@
 
 import React, { FunctionComponent, useEffect, useState } from "react";
 import * as OnfidoServ from 'onfido-sdk-ui'
-import { useNavigate } from "react-router-dom";
-import { completeVerification, initiateVerification } from "../api";
+import { useNavigate, useLocation } from "react-router-dom";
+import { completeVerification, initiateVerification, reinitiateVerification } from "../api";
 import { IdVResponseInterface } from "../model/identity-verification";
 import { Footer, LoadingSpinner, NavBar } from "../components";
 
@@ -33,16 +33,30 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [onfidoInstance, setOnfidoInstance] = useState<OnfidoServ.SdkHandle | null>(null);
 
+    const location = useLocation();
+    const reinitiate = location.state?.reinitiate === true;
+
     const initIdentityVerification = async () => {
         try {
-            const response: IdVResponseInterface = await initiateVerification();
+
+            let response: IdVResponseInterface;
+
+            if (reinitiate) {
+                console.log("Reinitiating verification");
+                response = await reinitiateVerification();
+            } else {
+                console.log("Initiating verification");
+                response = await initiateVerification();
+            }
+
+            console.log("Verification response:", response);
 
             const token = response?.claims?.[0]?.claimMetadata?.sdk_token;
             const workflowRunId = response?.claims?.[0]?.claimMetadata?.onfido_workflow_run_id;
 
             if (!token || !workflowRunId) {
-                const missingItem = !token ? "Token" : "Workflow run ID";
-                throw new Error(`${missingItem} not found in the init response from the Onfido server`);
+                const missingItem = !token ? "SDK token" : "Workflow run ID";
+                throw new Error(`${missingItem} not found in the identity verification initiation response from the Identity server`);
             }
 
             const instance = OnfidoServ.init({
@@ -68,7 +82,7 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
                     3. If any of these attributes are missing or incorrect, please update them in your WSO2 MyAccount.
                     If you've confirmed all attributes are correct and the issue persists, please contact support for further assistance.`;
             } else {
-                ErrorMessage = error.message || error.response?.data?.description || "An unexpected error occurred during the initiation of the identity verification. Please try again later or contact support.";
+                ErrorMessage = error.response?.data?.description || error.message || "An unexpected error occurred during the initiation of the identity verification. Please try again later or contact support.";
             }
             navigate('/generic-error', { state: { message: ErrorMessage } });
         } finally {
