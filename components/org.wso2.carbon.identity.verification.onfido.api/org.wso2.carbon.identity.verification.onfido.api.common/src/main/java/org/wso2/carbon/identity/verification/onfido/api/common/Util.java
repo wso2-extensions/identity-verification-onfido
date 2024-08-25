@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.common;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.MDC;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.UUID;
 
@@ -48,5 +51,21 @@ public class Util {
     public static boolean isCorrelationIDPresent() {
 
         return MDC.get(Constants.CORRELATION_ID_MDC) != null;
+    }
+
+    /**
+     * Retrieves the tenant ID from the current context.
+     *
+     * @return The tenant ID.
+     */
+    public static int getTenantId() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
+        return IdentityTenantUtil.getTenantId(tenantDomain);
     }
 }
