@@ -24,7 +24,7 @@
     <groupId>org.wso2.carbon.identity.verification</groupId>
     <artifactId>org.wso2.carbon.identity.verification.onfido</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>WSO2 Carbon - OnFido Indentity verification Provider Feature Aggregator Module</name>
+    <name>WSO2 Carbon - OnFido Identity verification Provider Feature Aggregator Module</name>
     <packaging>pom</packaging>
     <modules>
         <module>components/org.wso2.carbon.identity.verification.onfido.connector</module>

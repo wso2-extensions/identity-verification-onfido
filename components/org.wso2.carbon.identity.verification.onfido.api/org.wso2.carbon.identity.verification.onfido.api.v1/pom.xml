@@ -163,8 +163,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${compiler-source.version}</source>
+                    <target>${compiler-target.version}</target>
                 </configuration>
             </plugin>
         </plugins>

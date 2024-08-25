@@ -71,7 +71,6 @@ public class OnfidoAPIClient {
 
         try {
             URI uri = buildUri(baseUrl, APPLICANTS_ENDPOINT);
-
             HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri.toString(), idvClaimsWithValues.toString());
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
@@ -106,7 +105,6 @@ public class OnfidoAPIClient {
 
         try {
             URI uri = buildUri(baseUrl, WORKFLOW_RUN_ENDPOINT);
-
             HttpResponse response =
                     OnfidoWebUtils.httpPost(apiToken, uri.toString(), workflowRunRequestBody.toString());
 
@@ -140,8 +138,8 @@ public class OnfidoAPIClient {
 
         try {
             URI uri = buildUri(baseUrl, SDK_TOKEN_ENDPOINT);
-
             HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri.toString(), sdkTokenRequestBody.toString());
+
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 return getJsonObject(response);
             } else {
@@ -174,7 +172,6 @@ public class OnfidoAPIClient {
 
         try {
             URI uri = buildUri(baseUrl, APPLICANTS_ENDPOINT + "/" + applicantId);
-
             HttpResponse response = OnfidoWebUtils.httpPut(apiToken, uri.toString(), idvClaimsWithValues.toString());
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -207,10 +204,9 @@ public class OnfidoAPIClient {
 
         try {
             URI uri = buildUri(baseUrl, WORKFLOW_RUN_ENDPOINT + "/" + workflowRunId);
-
             HttpResponse response = OnfidoWebUtils.httpGet(apiToken, uri.toString());
-            int statusCode = response.getStatusLine().getStatusCode();
 
+            int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 return getJsonObject(response);
             } else {
