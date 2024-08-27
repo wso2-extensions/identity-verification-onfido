@@ -51,6 +51,8 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ACTION_WORKFLOW_RUN_COMPLETED;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NOT_FOUND;
+import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NULL;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_INVALID_REQUEST;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT;
 import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.ErrorMessage.CLIENT_ERROR_RESOLVING_IDVP;
@@ -67,6 +69,8 @@ import static org.wso2.carbon.identity.verification.onfido.api.common.Constants.
 import static org.wso2.carbon.identity.verification.onfido.api.common.Util.getTenantId;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.DATA_COMPARISON;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_NOT_FOUND;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_OR_MISSING_DATA_COMPARISON;
@@ -78,8 +82,8 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE_VALIDATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_SIGNATURE_VALIDATION_PROCESSING;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;;
-import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_LAST_VERIFIED;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_COMPLETED_AT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_VERIFICATION_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_WORKFLOW_RUN_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ONFIDO_WORKFLOW_STATUS;
@@ -278,33 +282,6 @@ public class OnfidoIdvService {
     }
 
     /**
-     * Extracts data comparison results from the resource map.
-     *
-     * @param resource The resource map containing output data.
-     * @return A map of data comparison results.
-     * @throws OnfidoClientException if the resource structure is invalid or missing required data.
-     */
-    private Map<String, Object> extractDataComparisonResults(Map<String, Object> resource)
-            throws OnfidoClientException {
-
-        if (resource == null || !(resource.get(OUTPUT) instanceof Map)) {
-            throw new OnfidoClientException(ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT.getCode(),
-                    ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT.getMessage());
-        }
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> output = (Map<String, Object>) resource.get(OUTPUT);
-
-        Object dataComparisonResults = output.get(DATA_COMPARISON);
-        if (!(dataComparisonResults instanceof Map)) {
-            throw new OnfidoClientException(ERROR_INVALID_OR_MISSING_DATA_COMPARISON.getCode(),
-                    ERROR_INVALID_OR_MISSING_DATA_COMPARISON.getMessage());
-        }
-
-        return (Map<String, Object>) dataComparisonResults;
-    }
-
-    /**
      * Updates the identity verification claims based on the provided Onfido verification request.
      *
      * @param verifyRequest The Onfido verification request containing the workflow run details and attribute
@@ -323,99 +300,216 @@ public class OnfidoIdvService {
         String completedAt = payload.getObject().getCompletedAtIso8601();
         OnfidoConstants.WorkflowRunStatus workflowRunStatus =
                 OnfidoConstants.WorkflowRunStatus.fromString(payload.getObject().getStatus());
-        Map<String, Object> attributeVerificationResults = extractDataComparisonResults(payload.getResource());
-
         try {
             /*
-             * Retrieve the WSO2 identity verification claims associated with the given workflow run ID.
+             * Retrieve the WSO2 identity verification claims associated with the given workflow run ID
+             * and update the workflow status.
              * Note: The workflow run ID is unique per user, so this should return claims for a single user.
              */
-            IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager()
-                    .getIdVClaimsByMetadata(ONFIDO_WORKFLOW_RUN_ID, workflowRunId, idvpId, tenantId);
-            if (idVClaims == null || idVClaims.length == 0) {
-                throw new OnfidoClientException(ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getCode(),
-                        ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getMessage());
-            }
+            IdVClaim[] idVClaims = getIdVClaimsByWorkflowRunId(workflowRunId, idvpId, tenantId);
+            updateIdvClaimsWorkflowStatus(idVClaims, workflowRunStatus, completedAt);
 
             /*
-             * Get the mapping of WSO2 claim URIs to Onfido claim names
-             * (e.g., "http://wso2.org/claims/lastname" maps to "last_name").
+             * Update the claim verification status if the workflow run status is "APPROVED".
+             *
+             * Note:
+             *  Even if the overall workflow status is "APPROVED", individual claims may still fail verification.
+             *  This discrepancy primarily stems from how the workflow is defined in the Onfido Studio:
+             *      1. The Onfido workflow might be configured to approve the overall process even if some claims
+             *         don't match exactly.
+             *      2. Some claims might be configured as optional in the verification process.
+             *         Their failure might not affect the overall approval.
+             *  Therefore, we need to check the verification result (i.e., value comparison results) for each claim
+             *  separately as we are focusing on the verification of exact claim value.
              */
-            Map<String, String> claimMappings = idVProvider.getClaimMappings();
-
-            for (IdVClaim idVClaim : idVClaims) {
-
-                // Get the Onfido claim name corresponding to the WSO2 claim URI.
-                String wso2ClaimUri = idVClaim.getClaimUri();
-                String onfidoClaimName = claimMappings.get(wso2ClaimUri);
-                if (onfidoClaimName == null) {
-                    log.error(String.format("No mapped Onfido claim name identified for the claim URI: %s for the " +
-                                    "IDV provider: %s.", wso2ClaimUri, idVProvider.getIdVProviderUuid()));
-                    continue;
-                }
-
-                /*
-                 * Map the Onfido claim name if necessary.
-                 * This is needed because some attribute names used during applicant creation (e.g., "dob") differ from
-                 * those used in the final attribute value comparison results (e.g., "date_of_birth").
-                 */
-                onfidoClaimName =
-                        OnfidoConstants.ONFIDO_CLAIM_NAME_MAPPING.getOrDefault(onfidoClaimName, onfidoClaimName);
-
-                Map<String, Object> metadata = idVClaim.getMetadata();
-                if (metadata == null) {
-                    log.error(String.format("Metadata for the claim URI: %s of user: %s is null", wso2ClaimUri,
-                            idVClaim.getUserId()));
-                    continue;
-                }
-
-                /*
-                 * Update the claim verification status if the workflow run status is "APPROVED".
-                 *
-                 * Note:
-                 *  Even if the overall workflow status is "APPROVED", individual claims may still fail verification.
-                 *  This discrepancy primarily stems from how the workflow is defined in the Onfido Studio:
-                 *      1. The Onfido workflow might be configured to approve the overall process even if some claims
-                 *         don't match exactly.
-                 *      2. Some claims might be configured as optional in the verification process.
-                 *         Their failure might not affect the overall approval.
-                 *  Therefore, we need to check the verification result (i.e., value comparison results) for each claim
-                 *  separately as we are focusing on the verification of exact claim value.
-                 */
-                if (workflowRunStatus == OnfidoConstants.WorkflowRunStatus.APPROVED) {
-                    Map<String, Object> verificationResult =
-                            (Map<String, Object>) attributeVerificationResults.get(onfidoClaimName);
-
-                    if (verificationResult == null || verificationResult.get(RESULT) == null) {
-                        log.error(String.format("No onfido verification results found for claim: %s of user: %s",
-                                wso2ClaimUri, idVClaim.getUserId()));
-                    } else {
-                        // A claim is considered verified if its verification status is "CLEAR".
-                        boolean isVerified = OnfidoConstants.ClaimVerificationStatus.CLEAR.toString()
-                                .equals(verificationResult.get(RESULT));
-                        idVClaim.setIsVerified(isVerified);
-
-                        // Update metadata with verification status and timestamp.
-                        metadata.put(ONFIDO_VERIFICATION_STATUS, verificationResult.get(RESULT));
-                        metadata.put(ONFIDO_LAST_VERIFIED, completedAt);
-                    }
-                }
-
-                // Update the workflow status in the metadata.
-                metadata.put(ONFIDO_WORKFLOW_STATUS, workflowRunStatus.getStatus());
-                idVClaim.setMetadata(metadata);
-
-                // Persist the updated claim information in the database.
-                OnfidoIdvServiceHolder.getIdentityVerificationManager()
-                        .updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Successfully updated claim verification status of the user: %s, claim: %s",
-                            idVClaim.getUserId(), wso2ClaimUri));
-                }
+            if (workflowRunStatus == OnfidoConstants.WorkflowRunStatus.APPROVED) {
+                Map<String, Object> dataComparisonResults = extractDataComparisonResults(payload.getResource());
+                updateIdvClaimsVerificationResults(dataComparisonResults, idVClaims, idVProvider);
             }
+
+            // Persist the updated claim information in the database.
+            persistUpdatedClaims(idVClaims, tenantId);
+
         } catch (IdentityVerificationException e) {
             throw new OnfidoServerException(ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS.getCode(),
                     ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS.getMessage(), e);
+        }
+    }
+
+    /**
+     * Retrieves the identity verification claims associated with a specific workflow run ID.
+     *
+     * @param workflowRunId The ID of the workflow run.
+     * @param idvpId        The identity verification provider ID.
+     * @param tenantId      The tenant ID.
+     * @return An array of IdVClaim objects associated with the workflow run.
+     * @throws OnfidoClientException If no claims are found for the given workflow run ID.
+     * @throws IdentityVerificationException If there's an error retrieving the claims.
+     */
+    private IdVClaim[] getIdVClaimsByWorkflowRunId(String workflowRunId, String idvpId, int tenantId)
+            throws OnfidoClientException, IdentityVerificationException {
+
+        IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager()
+                .getIdVClaimsByMetadata(ONFIDO_WORKFLOW_RUN_ID, workflowRunId, idvpId, tenantId);
+        if (idVClaims == null || idVClaims.length == 0) {
+            throw new OnfidoClientException(ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getCode(),
+                    ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getMessage());
+        }
+        return idVClaims;
+    }
+
+    /**
+     * Updates the workflow status and completion time for a set of identity verification claims.
+     *
+     * @param idVClaims         The array of identity verification claims to update.
+     * @param workflowRunStatus The new workflow run status.
+     * @param completedAt       The completion timestamp.
+     */
+    private void updateIdvClaimsWorkflowStatus(IdVClaim[] idVClaims,
+                                               OnfidoConstants.WorkflowRunStatus workflowRunStatus,
+                                               String completedAt) {
+
+        for (IdVClaim idVClaim : idVClaims) {
+            Map<String, Object> metadata = idVClaim.getMetadata();
+            if (metadata != null) {
+                metadata.put(ONFIDO_WORKFLOW_STATUS, workflowRunStatus.getStatus());
+                metadata.put(ONFIDO_COMPLETED_AT, completedAt);
+                idVClaim.setMetadata(metadata);
+            } else {
+                log.error(String.format("Metadata for the claim URI: %s of user: %s is null", idVClaim.getClaimUri(),
+                        idVClaim.getUserId()));
+            }
+        }
+    }
+
+    /**
+     * Extracts data comparison results from the resource map.
+     *
+     * @param resource The resource map containing output data.
+     * @return A map of data comparison results.
+     * @throws OnfidoClientException if the resource structure is invalid or missing required data.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractDataComparisonResults(Map<String, Object> resource)
+            throws OnfidoClientException {
+
+        if (resource == null || !(resource.get(OUTPUT) instanceof Map)) {
+            throw new OnfidoClientException(ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT.getCode(),
+                    ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT.getMessage());
+        }
+
+        Map<String, Object> output = (Map<String, Object>) resource.get(OUTPUT);
+
+        Object dataComparisonResults = output.get(DATA_COMPARISON);
+        if (!(dataComparisonResults instanceof Map)) {
+            throw new OnfidoClientException(ERROR_INVALID_OR_MISSING_DATA_COMPARISON.getCode(),
+                    ERROR_INVALID_OR_MISSING_DATA_COMPARISON.getMessage());
+        }
+
+        return (Map<String, Object>) dataComparisonResults;
+    }
+
+    /**
+     * Updates the verification results for a set of identity verification claims.
+     *
+     * @param dataComparisonResults The data comparison results from Onfido.
+     * @param idVClaims             The array of identity verification claims to update.
+     * @param idVProvider           The identity verification provider.
+     * @throws OnfidoClientException If there's an error processing the verification results.
+     */
+    @SuppressWarnings("unchecked")
+    private void updateIdvClaimsVerificationResults(Map<String, Object> dataComparisonResults, IdVClaim[] idVClaims,
+                                                    IdVProvider idVProvider) throws OnfidoClientException {
+        /*
+         * Get the mapping of WSO2 claim URIs to Onfido claim names
+         * (e.g., "http://wso2.org/claims/lastname" maps to "last_name").
+         */
+        Map<String, String> claimMappings = idVProvider.getClaimMappings();
+
+        for (IdVClaim idVClaim : idVClaims) {
+            String wso2ClaimUri = idVClaim.getClaimUri();
+            String onfidoClaimName = getOnfidoClaimName(wso2ClaimUri, claimMappings);
+            if (onfidoClaimName == null) {
+                log.error(String.format("No mapped Onfido claim name identified for the claim URI: %s for the " +
+                        "IDV provider: %s.", wso2ClaimUri, idVProvider.getIdVProviderUuid()));
+                continue;
+            }
+            Map<String, Object> metadata = idVClaim.getMetadata();
+            Map<String, Object> verificationResult = (Map<String, Object>) dataComparisonResults.get(onfidoClaimName);
+            validateVerificationResult(verificationResult, idVClaim);
+
+            // A claim is considered verified if its verification status is "CLEAR".
+            boolean isVerified = OnfidoConstants.ClaimVerificationStatus.CLEAR.toString()
+                    .equals(verificationResult.get(RESULT));
+            idVClaim.setIsVerified(isVerified);
+
+            // Update metadata with verification status.
+            metadata.put(ONFIDO_VERIFICATION_STATUS, verificationResult.get(RESULT));
+            idVClaim.setMetadata(metadata);
+        }
+    }
+
+    /**
+     * Retrieves the Onfido claim name corresponding to a WSO2 claim URI.
+     *
+     * This method performs a two-step mapping process:
+     * 1. It first maps the WSO2 claim URI to an initial Onfido claim name.
+     * 2. It then applies a second mapping to handle differences between attribute names
+     *    used during applicant creation and those used in the final data comparison results.
+     *
+     * This second mapping is necessary because some attribute names differ between these two stages.
+     * For example, "dob" used during applicant creation might be referred to as "date_of_birth"
+     * in the final attribute value comparison results.
+     *
+     * @param wso2ClaimUri   The WSO2 claim URI.
+     * @param claimMappings  The map of WSO2 claim URIs to initial Onfido claim names.
+     * @return The corresponding final Onfido claim name, or null if not found.
+     */
+    private String getOnfidoClaimName(String wso2ClaimUri, Map<String, String> claimMappings) {
+
+        String onfidoClaimName = claimMappings.get(wso2ClaimUri);
+        return OnfidoConstants.ONFIDO_CLAIM_NAME_MAPPING.getOrDefault(onfidoClaimName, onfidoClaimName);
+    }
+
+    /**
+     * Validates the verification result for a single claim.
+     *
+     * @param verificationResult The verification result from Onfido.
+     * @param idVClaim           The identity verification claim being validated.
+     * @throws OnfidoClientException If the verification result is missing or invalid.
+     */
+    private void validateVerificationResult(Map<String, Object> verificationResult, IdVClaim idVClaim)
+            throws OnfidoClientException {
+
+        if (verificationResult == null) {
+            throw new OnfidoClientException(
+                    ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_NOT_FOUND.getCode(),
+                    String.format(ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_NOT_FOUND.getMessage(), idVClaim.getClaimUri(),
+                            idVClaim.getUserId()));
+        } else if (verificationResult.get(RESULT) == null) {
+            throw new OnfidoClientException(
+                    ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL.getCode(),
+                    String.format(ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL.getMessage(),
+                            idVClaim.getClaimUri(), idVClaim.getUserId()));
+        }
+    }
+
+    /**
+     * Persists the updated identity verification claims to the database.
+     *
+     * @param idVClaims The array of updated identity verification claims.
+     * @param tenantId  The tenant ID.
+     * @throws IdentityVerificationException If there's an error updating the claims in the database.
+     */
+    private void persistUpdatedClaims(IdVClaim[] idVClaims, int tenantId) throws IdentityVerificationException {
+
+        for (IdVClaim idVClaim : idVClaims) {
+            OnfidoIdvServiceHolder.getIdentityVerificationManager()
+                    .updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Successfully updated claim verification status of the user: %s, claim: %s.",
+                        idVClaim.getUserId(), idVClaim.getClaimUri()));
+            }
         }
     }
 
@@ -441,6 +535,10 @@ public class OnfidoIdvService {
         } else if (ERROR_INVALID_OR_MISSING_RESOURCE_OUTPUT.getCode().equals(errorCode) ||
                 ERROR_INVALID_OR_MISSING_DATA_COMPARISON.getCode().equals(errorCode)) {
             errorMessage = CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT;
+        } else if (ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_NOT_FOUND.getCode().equals(errorCode)) {
+            errorMessage = CLIENT_ERROR_DATA_COMPARISON_RESULT_NOT_FOUND;
+        } else if (ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL.getCode().equals(errorCode)) {
+            errorMessage = CLIENT_ERROR_DATA_COMPARISON_RESULT_NULL;
         }
 
         throw handleException(status, e, errorMessage, StringUtils.EMPTY);

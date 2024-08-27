@@ -79,7 +79,17 @@ public class Constants {
                 "Invalid workflow output.",
                 "The request contains an invalid workflow output format. Ensure that the workflow is " +
                         "configured to include the document report's data comparison results in the output."),
-        CLIENT_ERROR_INVALID_REQUEST("60005",
+        CLIENT_ERROR_DATA_COMPARISON_RESULT_NOT_FOUND("60005",
+                "Onfido data comparison results missing.",
+                "Onfido data comparison results were not found for one or more required verification claims. " +
+                        "Please check that the Onfido claim mappings are correct and that only supported data for " +
+                        "data comparison is included."),
+        CLIENT_ERROR_DATA_COMPARISON_RESULT_NULL("60006",
+                "Onfido data comparison result is null.",
+                "The Onfido data comparison result returned null. This could occur if Comparison Checks are not " +
+                        "enabled for your account. Please verify your account settings or contact support " +
+                        "for assistance."),
+        CLIENT_ERROR_INVALID_REQUEST("60007",
                 "Invalid request payload.",
                 "The request payload contains invalid input, such as an invalid workflow run ID.");
 

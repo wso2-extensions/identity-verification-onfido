@@ -74,7 +74,7 @@ public class OnfidoConstants {
     public static final String ONFIDO_WORKFLOW_RUN_ID = "onfido_workflow_run_id";
     public static final String ONFIDO_WORKFLOW_STATUS = "onfido_workflow_status";
     public static final String ONFIDO_VERIFICATION_STATUS = "onfido_verification_status";
-    public static final String ONFIDO_LAST_VERIFIED = "onfido_last_verified";
+    public static final String ONFIDO_COMPLETED_AT = "onfido_completed_at";
 
     /**
      * Mapping of Onfido claim names used during applicant creation to those used in attribute value comparison results.
@@ -157,7 +157,12 @@ public class OnfidoConstants {
         ERROR_REINITIATION_NOT_ALLOWED("10033", "Reinitiation not allowed. Current workflow status" +
                 " is not 'AWAITING_INPUT'. Reinitiation is only permitted for claims with 'AWAITING_INPUT' status."),
         ERROR_VERIFICATION_REQUIRED_CLAIMS_NOT_FOUND("10034", "Verification requested claims list " +
-                "cannot be empty. Make sure to provide the claims that need to be verified.");
+                "cannot be empty. Make sure to provide the claims that need to be verified."),
+        ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_NOT_FOUND("10035", "No Onfido data comparison results " +
+                "found for claim: %s of user: %s."),
+        ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL("10036", "The Onfido data " +
+                "comparison result returned null for claim: %s of user: %s. This could be due to Comparison Checks " +
+                "not being enabled for your account.");
 
         private final String code;
         private final String message;
