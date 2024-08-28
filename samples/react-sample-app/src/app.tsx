@@ -20,15 +20,12 @@ import { AuthProvider, useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import "./app.css";
+import { ThemeProvider } from "@oxygen-ui/react";
 import { default as authConfig } from "./config.json";
 import { ErrorBoundary } from "./error-boundary";
 import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage, LoginPage } from "./pages";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import GlobalStyles from "@mui/material/GlobalStyles";
-import CssBaseline from "@mui/material/CssBaseline";
 import { LoadingSpinner } from "./components";
-import theme from './styles/theme';
+import Theme from './styles/guardioTheme';
 
 const AppContent: FunctionComponent = (): ReactElement => {
     const { error, state } = useAuthContext();
@@ -69,12 +66,9 @@ const AppContent: FunctionComponent = (): ReactElement => {
     )
 };
 
-const defaultTheme = createTheme();
 const App = () => (
     <AuthProvider config={authConfig}>
-        <ThemeProvider theme={theme}>
-            <GlobalStyles styles={{ ul: { margin: 0, padding: 0, listStyle: 'none' } }}/>
-            <CssBaseline/>
+        <ThemeProvider theme={Theme} defaultMode="light">
             <AppContent/>
         </ThemeProvider>
     </AuthProvider>
@@ -83,4 +77,3 @@ const App = () => (
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
 root.render(<App/>);
-

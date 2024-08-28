@@ -106,7 +106,7 @@ export const Plans = (props: PlanProps) => {
                     Choose Your Plan
                 </Typography>
                 <Typography variant="h6" align="center" color="text.secondary" component="p">
-                    Discover the ideal life insurance plan for your future with LifeGuardian. Flexible
+                    Discover the ideal life insurance plan for your future with Guardio Life. Flexible
                     options, competitive premiums, and exceptional service.
                 </Typography>
             </Container>

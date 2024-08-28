@@ -73,8 +73,8 @@ module.exports = async () => {
                     use: [ "style-loader", "css-loader" ]
                 },
                 {
-                    test: /\.(png|jpg|cur|gif|eot|ttf|woff|woff2)$/,
-                    use: [ "url-loader" ]
+                    test: /\.(png|jpg|cur|gif|eot|ttf|woff|woff2|webp)$/,
+                    use: [ "file-loader" ]
                 },
                 {
                     test: /\.html$/,
@@ -88,7 +88,11 @@ module.exports = async () => {
                     test: /\.js$/,
                     enforce: "pre",
                     use: [ "source-map-loader" ]
-                }
+                },
+                {
+                    test: /\.svg$/,
+                    use: ['@svgr/webpack', 'file-loader'],
+                },
             ]
         },
         output: {

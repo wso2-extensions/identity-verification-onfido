@@ -17,76 +17,75 @@
  */
 
 import React from "react";
-import AppBar from "@mui/material/AppBar";
-import { IconButton, Toolbar } from "@mui/material";
-import Typography from "@mui/material/Typography";
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
 import { useAuthContext } from "@asgardeo/auth-react";
+import { useNavigate } from "react-router-dom";
+import {
+    AppBar,
+    Toolbar,
+    Button,
+    Box
+} from "@oxygen-ui/react";
+import guardioLogo from "../images/guardio-life-horizontal.webp";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import LoginIcon from '@mui/icons-material/Login';
 
 export const NavBar = () => {
-    const { state, signOut } = useAuthContext();
-    const [ anchorEl, setAnchorEl ] = React.useState<null | HTMLElement>(null);
+    const { state, signIn } = useAuthContext();
+    const navigate = useNavigate();
 
-    const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
+    const handleLogin = () => {
+        signIn().catch((e) => console.log("Something went wrong while signing in. ", e));
     };
 
-    const handleClose = () => {
-        setAnchorEl(null);
+    const handleRegister = () => {
+        navigate("/register");
     };
-
-    const handleLogout = () => {
-        signOut().catch((e) => console.log("Something went wrong while signing out. ", e));
-    }
 
     return (
-        <AppBar
-            position="sticky"
-            color="default"
-            elevation={0}
-            sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}`, mb: 2 }}
-        >
-            <Toolbar sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="h5" color="inherit" align="left" noWrap sx={{ flexGrow: 1 }}>
-                    lifeGuardian
-                </Typography>
-                {state?.isAuthenticated && (
-                    <div>
-                        <IconButton
-                            size="large"
-                            aria-label="account of current user"
-                            aria-controls="menu-appbar"
-                            aria-haspopup="true"
-                            onClick={handleMenu}
-                            color="inherit"
-                        >
-                            <Typography variant="h6" color="inherit" align="left" noWrap sx={{ pr: 1 }}>
-                                {state?.displayName}
-                            </Typography>
-                            <AccountCircle/>
-                        </IconButton>
-                        <Menu
-                            id="menu-appbar"
-                            anchorEl={anchorEl}
-                            anchorOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                            }}
-                            keepMounted
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                            }}
-                            open={Boolean(anchorEl)}
-                            onClose={handleClose}
-                        >
-                            <MenuItem onClick={handleClose}>Profile</MenuItem>
-                            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                        </Menu>
-                    </div>
-                )}
+        <AppBar position="sticky" color="default" elevation={0} sx={{ 
+            borderBottom: (theme) => `1px solid ${theme.palette.divider}`, 
+            backgroundColor: 'white'
+        }}>
+            <Toolbar sx={{ justifyContent: 'space-between', padding: '0.5rem 2rem' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <img 
+                        src={guardioLogo}
+                        alt="Guardio Life" 
+                        style={{ height: '40px' }}
+                    />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'center', padding: '0 2rem' }}>
+                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Overview</Button>
+                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Partners</Button>
+                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Pricing</Button>
+                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>About Us</Button>
+                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Contact</Button>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {!state?.isAuthenticated && (
+                        <>
+                            <Button 
+                                color="primary" 
+                                variant="outlined" 
+                                onClick={handleRegister} 
+                                sx={{ 
+                                    mr: 2
+                                }}
+                            >
+                                <PersonAddIcon sx={{ mr: 1 }} />
+                                Register
+                            </Button>
+                            <Button 
+                                color="primary" 
+                                variant="contained" 
+                                onClick={handleLogin}
+                            >
+                                <LoginIcon sx={{ mr: 1 }} />
+                                Login
+                            </Button>
+                        </>
+                    )}
+                </Box>
             </Toolbar>
         </AppBar>
     );

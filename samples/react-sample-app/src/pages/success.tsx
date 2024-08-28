@@ -41,7 +41,7 @@ export const SuccessPage = () => {
                     gutterBottom
                     sx={{ mb: 3 }}
                 >
-                    Thank you for choosing LifeGuardian!
+                    Thank you for choosing Guardio Life!
                 </Typography>
                 <Typography variant="h6" align="center" color="text.secondary" component="p">
                     {
