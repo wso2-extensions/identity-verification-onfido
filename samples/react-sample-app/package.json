@@ -23,7 +23,6 @@
     "private": false,
     "scripts": {
         "start": "webpack-dev-server --mode development --hot --open",
-        "prebuild": "npm install",
         "build": "webpack --mode production"
     },
     "dependencies": {
