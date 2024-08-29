@@ -24,7 +24,7 @@
     "scripts": {
         "start": "webpack-dev-server --mode development --hot --open",
         "prebuild": "npm install",
-        "build": "webpack"
+        "build": "webpack --mode production"
     },
     "dependencies": {
         "@asgardeo/auth-react": "^2.0.3",

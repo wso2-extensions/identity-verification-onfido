@@ -44,7 +44,7 @@ const generatePortInUsePrompt = () => {
 `;
 };
 
-module.exports = async () => {
+module.exports = async (env) => {
     const PORT = await findPort(DEFAULT_PORT, HOST, false, {
         extensions: {
             BEFORE_getProcessTerminationMessage: () => {
@@ -52,6 +52,8 @@ module.exports = async () => {
             },
         },
     });
+
+    const isProduction = env.production;
 
     return ({
         devServer: {
@@ -69,7 +71,7 @@ module.exports = async () => {
         },
         devtool: "source-map",
         entry: [ "./src/app.tsx" ],
-        mode: "development",
+        mode: isProduction ? "production" : "development",
         module: {
             rules: [
                 {
