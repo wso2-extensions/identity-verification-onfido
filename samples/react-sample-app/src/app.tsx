@@ -36,7 +36,7 @@ const AppContent: FunctionComponent = (): ReactElement => {
 
     return (
         <ErrorBoundary error={error}>
-            <Router>
+            <Router basename={process.env.REACT_APP_BASE_URL}>
                 <Routes>
                     <Route 
                         path="/login" 
