@@ -20,12 +20,18 @@ require("dotenv").config();
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const { findPort } = require("dev-server-ports");
+const webpack = require('webpack');
 
 const HOST = process.env.HOST || "localhost";
 const DEFAULT_PORT = process.env.PORT || 3000;
 const devServerHostCheckDisabled =
     process.env.DISABLE_DEV_SERVER_HOST_CHECK === "true";
 const https = process.env.HTTPS === "true";
+const baseUrl = process.env.REACT_APP_BASE_URL || "/";
+
+const envFile = ".env";
+const envPath = path.resolve(__dirname, envFile);
+const envVars = require('dotenv').config({ path: envPath }).parsed || {};
 
 const generatePortInUsePrompt = () => {
     return `Be sure to update the following configurations if you proceed with the port change.
@@ -38,7 +44,7 @@ const generatePortInUsePrompt = () => {
 `;
 };
 
-module.exports = async () => {
+module.exports = async (env) => {
     const PORT = await findPort(DEFAULT_PORT, HOST, false, {
         extensions: {
             BEFORE_getProcessTerminationMessage: () => {
@@ -47,10 +53,17 @@ module.exports = async () => {
         },
     });
 
+    const isProduction = env.production;
+
     return ({
         devServer: {
-            static: path.resolve(__dirname, "dist"),
-            historyApiFallback: true,
+            static: {
+                directory: path.resolve(__dirname, "dist"),
+                publicPath: baseUrl,
+            },
+            historyApiFallback: {
+                index: `${baseUrl}/index.html`,
+            },
             server: https ? "https": "http",
             host: HOST,
             allowedHosts: devServerHostCheckDisabled ? "all" : undefined,
@@ -58,7 +71,7 @@ module.exports = async () => {
         },
         devtool: "source-map",
         entry: [ "./src/app.tsx" ],
-        mode: "development",
+        mode: isProduction ? "production" : "development",
         module: {
             rules: [
                 {
@@ -97,9 +110,13 @@ module.exports = async () => {
         },
         output: {
             path: path.resolve(__dirname, "dist"),
-            filename: "[name].js"
+            filename: "[name].js",
+            publicPath: baseUrl,
         },
         plugins: [
+            new webpack.DefinePlugin({
+                "process.env": JSON.stringify(envVars),
+            }),
             new HtmlWebpackPlugin({
                 template: "./src/index.html"
             })
