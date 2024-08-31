@@ -23,15 +23,21 @@ import {
     AppBar,
     Toolbar,
     Button,
-    Box
+    Box,
+    Menu,
+    MenuItem,
+    Avatar,
+    Typography,
 } from "@oxygen-ui/react";
 import guardioLogo from "../images/guardio-life-horizontal.webp";
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import LoginIcon from '@mui/icons-material/Login';
+import avatarImage from "../images/avatar.png";
+import { UserPlusIcon, ArrowRightToBracketIcon } from "@oxygen-ui/react-icons";
+import { UserIcon, ArrowRightFromBracketIcon } from "@oxygen-ui/react-icons";
 
 export const NavBar = () => {
-    const { state, signIn } = useAuthContext();
+    const { state, signIn, signOut } = useAuthContext();
     const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
     const handleLogin = () => {
         signIn().catch((e) => console.log("Something went wrong while signing in. ", e));
@@ -41,10 +47,23 @@ export const NavBar = () => {
         navigate("/register");
     };
 
+    const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleLogout = () => {
+        signOut().catch((e) => console.log("Something went wrong while signing out. ", e));
+        handleClose();
+    };
+
     return (
         <AppBar position="sticky" color="default" elevation={0} sx={{ 
             borderBottom: (theme) => `1px solid ${theme.palette.divider}`, 
-            backgroundColor: 'white'
+            backgroundColor: '#F8F9FA'
         }}>
             <Toolbar sx={{ justifyContent: 'space-between', padding: '0.5rem 2rem' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -55,34 +74,84 @@ export const NavBar = () => {
                     />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'center', padding: '0 2rem' }}>
-                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Overview</Button>
-                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Partners</Button>
-                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Pricing</Button>
-                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>About Us</Button>
-                    <Button color="inherit" sx={{ mr: 2, color: '#66799e' }}>Contact</Button>
+                    {['Overview', 'Partners', 'Pricing', 'About Us', 'Contact'].map((item) => (
+                        <Button key={item} color="inherit" sx={{ mx: 1, color: 'text.secondary' }}>
+                            {item}
+                        </Button>
+                    ))}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {!state?.isAuthenticated && (
+                    {!state?.isAuthenticated ? (
                         <>
                             <Button 
                                 color="primary" 
                                 variant="outlined" 
                                 onClick={handleRegister} 
-                                sx={{ 
-                                    mr: 2
-                                }}
+                                startIcon={<UserPlusIcon />}
+                                sx={{ mr: 2 }}
                             >
-                                <PersonAddIcon sx={{ mr: 1 }} />
                                 Register
                             </Button>
                             <Button 
                                 color="primary" 
                                 variant="contained" 
                                 onClick={handleLogin}
+                                startIcon={<ArrowRightToBracketIcon />}
                             >
-                                <LoginIcon sx={{ mr: 1 }} />
                                 Login
                             </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleMenu}>
+                                <Typography variant="body2" sx={{ ml: 1 }}>{state.username}</Typography>
+                                <Avatar 
+                                    alt="User Avatar" 
+                                    src={avatarImage} 
+                                    sx={{ 
+                                        width: 35, 
+                                        height: 38.2, 
+                                        border: '1px solid #bdbdbd',
+                                        ml: 1
+                                    }} 
+                                />
+                            </Box>
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handleClose}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                slotProps={{
+                                    paper: {
+                                        sx: {
+                                            width: '200px',
+                                            boxShadow: '0px 2px 8px rgba(0,0,0,0.15)',
+                                            borderRadius: '8px',
+                                            mt: 1
+                                        }
+                                    }
+                                }}
+                            >
+                                <MenuItem onClick={handleClose} sx={{ py: 1.5 }}>
+                                    <Box sx={{ mr: 2 }}>
+                                        <UserIcon />
+                                    </Box>
+                                    <Typography variant="body2" sx={{ flexGrow: 1 }}>My Account</Typography>
+                                </MenuItem>
+                                <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
+                                    <Box sx={{ mr: 2 }}>
+                                        <ArrowRightFromBracketIcon />
+                                    </Box>
+                                    <Typography variant="body2" sx={{ flexGrow: 1 }}>Logout</Typography>
+                                </MenuItem>
+                            </Menu>
                         </>
                     )}
                 </Box>

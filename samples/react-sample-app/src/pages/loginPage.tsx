@@ -56,62 +56,83 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
                 display: 'flex', 
                 flexDirection: { xs: 'column', md: 'row' },
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justifyContent: 'center',
                 padding: { xs: 2, sm: 4, md: 6 },
-                gap: 4
+                maxWidth: '1400px',
+                margin: '0 auto',
+                width: '100%'
             }}>
+                <Box sx={{ 
+                    flex: 1,
+                    display: { xs: 'none', md: 'flex' },
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    maxWidth: '60%'
+                }}>
+                    <GuardioFamily style={{ maxWidth: '100%', height: 'auto' }} />
+                </Box>
                 <Box sx={{ 
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: { xs: 'center', md: 'flex-start' },
-                    maxWidth: { xs: '100%', md: '50%' }
+                    maxWidth: { xs: '100%', md: '40%' },
+                    pl: { md: 4 }
                 }}>
-                    <Typography variant="h3" component="h1" gutterBottom>
+                    <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 1 }}>
                         The Right Protection
                     </Typography>
-                    <Typography variant="h4" component="h2" gutterBottom>
+                    <Typography variant="h5" component="h2" gutterBottom color="text.secondary" sx={{ mb: 3 }}>
                         for You and Your Family
                     </Typography>
-                    <Typography variant="body1" paragraph>
+                    <Typography variant="body1" paragraph sx={{ mb: 4, fontSize: '1.1rem' }}>
                         Excellence in life insurance since 2001. We are one of the leading life insurers in the world. Choose your life with the most loved health insurance company.
                     </Typography>
-                    <Box component="form" noValidate sx={{ mt: 1, width: '100%', maxWidth: '400px' }}>
+                    <Box component="form" noValidate sx={{ width: '100%' }}>
                         <TextField
                             margin="normal"
                             required
                             fullWidth
                             id="email"
-                            label="Your email"
+                            placeholder="Your email"
                             name="email"
                             autoComplete="email"
                             autoFocus
+                            InputProps={{
+                                sx: { 
+                                    fontSize: '1.1rem',
+                                    '&::placeholder': {
+                                        opacity: 1
+                                    }
+                                }
+                            }}
+                            sx={{ mb: 1 }}
                         />
-                        <Typography variant="body2" sx={{ mt: 1 }}>
+                        <Typography variant="body2" sx={{ display: 'block', mb: 2, fontSize: '0.9rem' }}>
                             Please enter your email in the above field if you wish to download our policy. Don&apos;t worry, we won&apos;t spam you.
                         </Typography>
                         <FormControlLabel
                             control={<Checkbox value="subscribe" color="primary" />}
-                            label="Subscribe me to the Guardio newsletter"
-                            sx={{ mt: 2 }}
+                            label={
+                                <Typography sx={{ fontSize: '1rem' }}>
+                                    Subscribe me to the Guardio newsletter
+                                </Typography>
+                            }
+                            sx={{ mb: 2 }}
                         />
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
+                            sx={{ 
+                                py: 1.5, 
+                                backgroundColor: 'primary.light', 
+                                '&:hover': { backgroundColor: 'primary.main' },
+                                fontSize: '1.1rem'
+                            }}
                         >
                             Download Policy
                         </Button>
                     </Box>
-                </Box>
-                <Box sx={{ 
-                    flex: 1,
-                    display: { xs: 'none', md: 'flex' },
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <GuardioFamily style={{ maxWidth: '100%', height: 'auto' }} />
                 </Box>
             </Box>
             <Footer />

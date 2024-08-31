@@ -18,7 +18,8 @@
 
 import React, { FunctionComponent, ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
-import { DefaultLayout } from "../layouts/default";
+import { Button, Typography, Container, Box } from '@oxygen-ui/react';
+import { Footer, NavBar } from "../components";
 
 /**
  * Page to display for 404.
@@ -26,22 +27,40 @@ import { DefaultLayout } from "../layouts/default";
  * @return {React.ReactElement}
  */
 export const NotFoundPage: FunctionComponent = (): ReactElement => {
-
     const navigate = useNavigate();
 
     return (
-        <DefaultLayout>
-            <h3>
-                404: Page not found
-            </h3>
-            <button
-                className="btn primary"
-                onClick={() => {
-                    navigate("/home")
-                }}
-            >
-                Go back to home
-            </button>
-        </DefaultLayout>
+        <>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="text.primary"
+                        gutterBottom
+                    >
+                        404: Page Not Found
+                    </Typography>
+                    <Typography 
+                        variant="h6" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        Sorry, the page you are looking for doesn&apos;t exist or has been moved.
+                    </Typography>
+                    <Button 
+                        color="primary" 
+                        variant="outlined" 
+                        onClick={() => navigate("/")}
+                        sx={{ mt: 2 }}
+                    >
+                        Go back to Home Page
+                    </Button>
+                </Box>
+            </Container>
+            <Footer />
+        </>
     );
 };

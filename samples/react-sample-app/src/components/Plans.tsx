@@ -16,12 +16,13 @@
  * under the License.
  */
 
-import { Card, CardContent, Button, Container, Grid } from '@oxygen-ui/react';
-import { useTheme } from '@oxygen-ui/react';
-import { Typography } from '@mui/material';
+import { Card, CardContent, Button, Container, Grid, Box, Typography } from '@oxygen-ui/react';
+import { ButtonGroup, Button as MuiButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { InsurancePlanCard } from "../model/insurance-plan";
 import React from 'react';
+import EmailIcon from '@mui/icons-material/Email';
+import GroupIcon from '@mui/icons-material/Group';
 
 const plans: InsurancePlanCard[] = [
     {
@@ -85,11 +86,104 @@ export const Plans = (props: PlanProps) => {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ py: 8 }}>
-            <Typography variant="h1" align="center" gutterBottom>
+        <Container maxWidth="lg" sx={{ py: 8, position: 'relative' }}>
+            <Box sx={{ 
+                position: 'absolute', 
+                top: 0,
+                right: 0,
+                zIndex: 1000,
+                marginTop: '16px',
+                marginRight: '16px'
+            }}>
+                <ButtonGroup 
+                    variant="outlined" 
+                    sx={{ 
+                        borderRadius: '12px',
+                        overflow: 'visible',
+                        backgroundColor: 'white',
+                        border: '1px solid #f0f0f0',
+                        '& .MuiButtonGroup-grouped:not(:last-of-type)': {
+                            borderColor: '#f0f0f0',
+                            borderRightWidth: '1px',
+                        },
+                        boxShadow: '0 0 0 1px #f0f0f0',
+                    }}
+                >
+                    <MuiButton
+                        startIcon={<EmailIcon />}
+                        sx={{ 
+                            color: 'black', 
+                            borderRadius: '12px 0 0 12px',
+                            position: 'relative',
+                            paddingRight: '16px',
+                            paddingLeft: '16px',
+                            '&:hover': { backgroundColor: 'transparent' },
+                            borderColor: '#f0f0f0',
+                            borderWidth: '1px',
+                            fontSize: '0.875rem',
+                        }}
+                    >
+                        Messages
+                        <Box component="span" sx={{
+                            position: 'absolute',
+                            top: -12,
+                            right: -15,
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            borderRadius: '12px',
+                            padding: '0 6px',
+                            fontSize: '0.75rem',
+                            minWidth: '33px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1,
+                        }}>
+                            22
+                        </Box>
+                    </MuiButton>
+                    <MuiButton
+                        startIcon={<GroupIcon />}
+                        sx={{ 
+                            color: 'black',
+                            borderRadius: '0 12px 12px 0',
+                            position: 'relative',
+                            paddingRight: '16px',
+                            paddingLeft: '16px',
+                            '&:hover': { backgroundColor: 'transparent' },
+                            borderColor: '#f0f0f0',
+                            borderWidth: '1px',
+                            fontSize: '0.875rem',
+                        }}
+                    >
+                        Notifications
+                        <Box component="span" sx={{
+                            position: 'absolute',
+                            top: -12,
+                            right: -15,
+                            backgroundColor: '#00C6AE', 
+                            color: 'white',
+                            borderRadius: '12px',
+                            padding: '0 6px',
+                            fontSize: '0.75rem',
+                            minWidth: '33px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1,
+                        }}>
+                            22
+                        </Box>
+                    </MuiButton>
+                </ButtonGroup>
+            </Box>
+            
+            <Typography variant="h2" align="center" gutterBottom>
                 Choose Your Plan
             </Typography>
-            <Typography align="center" sx={{ mb: 6 }}>
+            <Typography align="center" sx={{ mt: 8, mb: 6 }}>
                 Discover the ideal life insurance plan for your future with Guardio Life. Flexible
                 options, competitive premiums, and exceptional service.
             </Typography>

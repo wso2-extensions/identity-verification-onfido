@@ -16,44 +16,49 @@
  * under the License.
  */
 
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import { Footer, NavBar } from "../components";
-import { useLocation, useNavigate } from "react-router-dom";
 import React from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
+import { Button, Typography, Container, Box } from '@oxygen-ui/react';
+import { Footer, NavBar } from "../components";
 
 export const SuccessPage = () => {
-
     const navigate = useNavigate();
     const location = useLocation();
     const plan = location?.state?.plan;
 
     return (
         <>
-            <NavBar/>
-            <Container disableGutters maxWidth="sm" component="main" sx={{ pt: 8, pb: 6, minHeight: "70vh" }}>
-                <Typography
-                    component="h5"
-                    variant="h4"
-                    align="center"
-                    color="text.primary"
-                    gutterBottom
-                    sx={{ mb: 3 }}
-                >
-                    Thank you for choosing Guardio Life!
-                </Typography>
-                <Typography variant="h6" align="center" color="text.secondary" component="p">
-                    {
-                        `One of our agents will contact you shortly to walk you through the next steps of the 
-                        ${plan ?? "selected insurance plan"}.`
-                    }
-                </Typography>
-                <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
-                    Back to home
-                </Button>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="text.primary"
+                        gutterBottom
+                    >
+                        Thank you for choosing Guardio Life!
+                    </Typography>
+                    <Typography 
+                        variant="h6" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        One of our agents will contact you shortly to walk you through 
+                        the next steps of the {plan ?? "selected insurance plan"}.
+                    </Typography>
+                    <Button 
+                        color="primary" 
+                        variant="outlined" 
+                        onClick={() => navigate("/")}
+                        sx={{ mt: 2 }}
+                    >
+                        Back to home
+                    </Button>
+                </Box>
             </Container>
-            <Footer/>
+            <Footer />
         </>
     );
 }

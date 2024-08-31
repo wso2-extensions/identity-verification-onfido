@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper } from '@mui/material';
+import { Box, Button, Container, Paper, Typography } from '@oxygen-ui/react';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { NavBar, Footer } from '../components';
 
@@ -62,8 +62,8 @@ export const GenericErrorPage: React.FC = () => {
                             ))}
                         </Box>
                         <Button
-                            variant="contained"
-                            color="primary"
+                            color="primary" 
+                            variant="outlined"
                             onClick={() => navigate('/')}
                             sx={{ mt: 3 }}
                         >
