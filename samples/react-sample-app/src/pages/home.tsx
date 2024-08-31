@@ -47,7 +47,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                 if (status.isVerified === true) {
                     setIsDrawerOpen(false);
                 } else if (status.isVerified === undefined) {
-                    setDrawerMessage("You need to verify your age to keep using LifeGuardian Web Portal.");
+                    setDrawerMessage("You need to verify your age to keep using Guardio Life Web Portal.");
                     setIsDrawerOpen(true);
                 } else {
                     switch(status.workflowStatus) {

@@ -51,7 +51,7 @@ export const NavBar = () => {
                     <img 
                         src={guardioLogo}
                         alt="Guardio Life" 
-                        style={{ height: '40px' }}
+                        style={{ height: '35px' }}
                     />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'center', padding: '0 2rem' }}>

@@ -20,8 +20,8 @@ import { useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer, LoadingSpinner, NavBar } from "../components";
-import { Typography, Button, Box, Paper } from "@mui/material";
-import backgroundImage from "../images/life-insurance-background.png";
+import { Typography, Button, Box, TextField, Checkbox, FormControlLabel } from "@oxygen-ui/react";
+import { ReactComponent as GuardioFamily } from "../images/guardio-family.svg";
 
 export const LoginPage: FunctionComponent = (): ReactElement => {
     const { state, signIn } = useAuthContext();
@@ -49,61 +49,70 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
     }
 
     return (
-        <Box
-            sx={{
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundImage: `url(${backgroundImage})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
-        >
+        <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <NavBar />
-            <Box
-                sx={{
-                    flexGrow: 1,
+            <Box sx={{ 
+                flexGrow: 1, 
+                display: 'flex', 
+                flexDirection: { xs: 'column', md: 'row' },
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: { xs: 2, sm: 4, md: 6 },
+                gap: 4
+            }}>
+                <Box sx={{ 
+                    flex: 1,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    padding: { xs: 2, sm: 4, md: 6 },
-                }}
-            >
-                <Paper
-                    elevation={3}
-                    sx={{
-                        p: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        borderRadius: 2,
-                        maxWidth: '400px',
-                        width: '100%',
-                    }}
-                >
-                    <Typography component="h1" variant="h4" sx={{ mb: 2, color: 'primary.main' }}>
-                        Welcome to LifeGuardian
+                    flexDirection: 'column',
+                    alignItems: { xs: 'center', md: 'flex-start' },
+                    maxWidth: { xs: '100%', md: '50%' }
+                }}>
+                    <Typography variant="h3" component="h1" gutterBottom>
+                        The Right Protection
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ mb: 3, textAlign: 'center' }}>
-                        Safeguarding Your Journey with Unwavering Commitment.
+                    <Typography variant="h4" component="h2" gutterBottom>
+                        for You and Your Family
                     </Typography>
-                    <Button
-                        onClick={handleLogin}
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        sx={{ 
-                            mt: 2, 
-                            backgroundColor: 'primary.main',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                        }}
-                    >
-                        Login
-                    </Button>
-                </Paper>
+                    <Typography variant="body1" paragraph>
+                        Excellence in life insurance since 2001. We are one of the leading life insurers in the world. Choose your life with the most loved health insurance company.
+                    </Typography>
+                    <Box component="form" noValidate sx={{ mt: 1, width: '100%', maxWidth: '400px' }}>
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="email"
+                            label="Your email"
+                            name="email"
+                            autoComplete="email"
+                            autoFocus
+                        />
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                            Please enter your email in the above field if you wish to download our policy. Don&apos;t worry, we won&apos;t spam you.
+                        </Typography>
+                        <FormControlLabel
+                            control={<Checkbox value="subscribe" color="primary" />}
+                            label="Subscribe me to the Guardio newsletter"
+                            sx={{ mt: 2 }}
+                        />
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                        >
+                            Download Policy
+                        </Button>
+                    </Box>
+                </Box>
+                <Box sx={{ 
+                    flex: 1,
+                    display: { xs: 'none', md: 'flex' },
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <GuardioFamily style={{ maxWidth: '100%', height: 'auto' }} />
+                </Box>
             </Box>
             <Footer />
         </Box>

@@ -17,34 +17,35 @@
  */
 
 import React from "react";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Link from "@mui/material/Link";
+import { Box, Typography, Theme } from "@oxygen-ui/react";
 
 export const Footer = () => {
-
-    const Copyright = () => (
-        <Typography variant="body2" color="text.secondary" align="center">
-            {'Copyright © '}
-            <Link color="inherit" href="https://wso2.com">
-                WSO2
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
+    const currentYear = new Date().getFullYear();
 
     return (
-        <Container
-            maxWidth="md"
+        <Box
             component="footer"
             sx={{
-                borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-                mt: 8,
-                py: [ 3, 3 ],
+                backgroundColor: '#1e202d',
+                borderTop: (theme: Theme) => `1px solid ${theme.palette.divider}`,
+                color: 'white',
+                padding: '8px 16px',
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '60px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
         >
-            <Copyright/>
-        </Container>);
-
-}
+            <Typography 
+                variant="body1" 
+                align="center" 
+            >
+                Guardio Life © {currentYear} | Powered by WSO2 Identity Server
+            </Typography>
+        </Box>
+    );
+};
