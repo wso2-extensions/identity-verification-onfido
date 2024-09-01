@@ -29,7 +29,7 @@ import { ClaimVerificationStatus, WorkflowStatus } from "../model/identity-verif
  * @return {React.ReactElement}
  */
 export const HomePage: FunctionComponent = (): ReactElement => {
-    const { state } = useAuthContext();
+    const { state, signIn } = useAuthContext();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -47,7 +47,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                 if (status.isVerified === true) {
                     setIsDrawerOpen(false);
                 } else if (status.isVerified === undefined) {
-                    setDrawerMessage("You need to verify your age to keep using Guardio Life Web Portal.");
+                    setDrawerMessage("You need to verify your age to upgrade your Guardio Life subscription.");
                     setIsDrawerOpen(true);
                 } else {
                     switch(status.workflowStatus) {
@@ -55,7 +55,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                             setDrawerMessage("Your age verification was interrupted. Please click the button below to continue.");
                             break;
                         case WorkflowStatus.PROCESSING:
-                            setDrawerMessage("Your age verification is in progress. Please check back later.");
+                            setDrawerMessage("Your age verification is in progress. Please check back later to complete your upgrade.");
                             break;
                         case WorkflowStatus.APPROVED:
                         case WorkflowStatus.DECLINED:
@@ -89,14 +89,22 @@ export const HomePage: FunctionComponent = (): ReactElement => {
 
     useEffect(() => {
         if (!state?.isAuthenticated) {
-            navigate("/login");
+            signIn()
+                .catch((error) => {
+                    console.error("Error during sign-in:", error);
+                    navigate('/generic-error', { 
+                        state: { 
+                            message: "An error occurred during sign-in. Please try again later."
+                        }
+                    });
+                });
         } else if (location?.state?.idVerificationInitiated) {
             navigate("/verification-in-progress");
         } else {
             setIsLoading(true);
             checkVerificationStatus();
         }
-    }, [state?.isAuthenticated, navigate, checkVerificationStatus, location]);
+    }, [state?.isAuthenticated, navigate, checkVerificationStatus, location, signIn]);
 
     const handleVerifyAge = () => {
         if (verificationStatus?.workflowStatus === WorkflowStatus.AWAITING_INPUT) {

@@ -19,11 +19,11 @@
 import { AuthProvider, useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@oxygen-ui/react";
 import { default as authConfig } from "./config.json";
 import { ErrorBoundary } from "./error-boundary";
-import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage, LoginPage } from "./pages";
+import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage } from "./pages";
 import { LoadingSpinner } from "./components";
 import Theme from './styles/guardioTheme';
 
@@ -38,26 +38,10 @@ const AppContent: FunctionComponent = (): ReactElement => {
         <ErrorBoundary error={error}>
             <Router basename={process.env.REACT_APP_BASE_URL}>
                 <Routes>
-                    <Route 
-                        path="/login" 
-                        element={state?.isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />} 
-                    />
-                    <Route 
-                        path="/" 
-                        element={state?.isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />}
-                    />
-                    <Route 
-                        path="/verify" 
-                        element={state?.isAuthenticated ? <VerifyPage /> : <Navigate to="/login" replace />}
-                    />
-                    <Route 
-                        path="/success" 
-                        element={state?.isAuthenticated ? <SuccessPage /> : <Navigate to="/login" replace />}
-                    />
-                    <Route 
-                        path="/verification-in-progress" 
-                        element={state?.isAuthenticated ? <VerificationInProgressPage /> : <Navigate to="/login" replace />}
-                    />
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/verify" element={<VerifyPage />} />
+                    <Route path="/success" element={<SuccessPage />} />
+                    <Route path="/verification-in-progress" element={<VerificationInProgressPage />} />
                     <Route path="/generic-error" element={<GenericErrorPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>

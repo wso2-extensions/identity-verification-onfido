@@ -75,7 +75,7 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
             let ErrorMessage;
             if (error.response?.status === 400 && error.response?.data?.code === "OIDV-10002") {
                 ErrorMessage = `The initiation of the identity verification encountered an issue. Please proceed with the following steps to resolve it:
-                    1. Log in to your WSO2 MyAccount.
+                    1. Go to MyAccount.
                     2. Check if the following required attributes are set and have valid values:
                     - Date of Birth
                     - First Name

@@ -29,36 +29,36 @@ const plans: InsurancePlanCard[] = [
         title: 'Retirement Plan',
         price: '20',
         description: [
-            '8% Minimum ROI',
-            'Hospitalization Cover',
-            '100 Years Plus - Life Cover',
-            'Critical Illness Cover',
+            'Increased ROI to 10%',
+            'Extended Hospitalization Cover',
+            'Lifetime Life Cover',
+            'Enhanced Critical Illness Cover',
         ],
-        buttonText: 'Get started',
+        buttonText: 'Upgrade',
         buttonVariant: 'contained',
     },
     {
-        title: 'Wealth Plan',
-        price: '25',
+        title: 'Advanced Wealth Plan',
+        price: '30',
         description: [
-            '12% Minimum ROI',
-            'Hospitalization Cover',
-            'Partial Withdrawals',
-            'Flexible Term Options',
+            'Boosted ROI to 15%',
+            'Premium Hospitalization Cover',
+            'Increased Partial Withdrawals',
+            'Customizable Term Options',
         ],
-        buttonText: 'Get started',
+        buttonText: 'Upgrade',
         buttonVariant: 'contained',
     },
     {
         title: 'Premium Relief Plan',
-        price: '30',
+        price: '35',
         description: [
-            '16% Minimum ROI',
-            'Hospitalization Cover',
-            '100 Years Plus - Life Cover',
-            'Family Health Cover',
+            'Maximum ROI of 18%',
+            'Comprehensive Hospitalization Cover',
+            'Extended Family Health Cover',
+            'Priority Claims Processing',
         ],
-        buttonText: 'Get started',
+        buttonText: 'Upgrade',
         buttonVariant: 'contained',
     },
 ];
@@ -181,11 +181,11 @@ export const Plans = (props: PlanProps) => {
             </Box>
             
             <Typography variant="h2" align="center" gutterBottom>
-                Choose Your Plan
+                Upgrade Your Subscription
             </Typography>
-            <Typography align="center" sx={{ mt: 8, mb: 6 }}>
-                Discover the ideal life insurance plan for your future with Guardio Life. Flexible
-                options, competitive premiums, and exceptional service.
+            <Typography align="center" sx={{ mt: 4, mb: 6 }}>
+                Enhance your Guardio Life plan to better suit your evolving needs. 
+                Enjoy improved benefits, higher coverage, and exclusive features with our premium upgrades.
             </Typography>
             <Grid container spacing={4} justifyContent="center">
                 {plans.map((plan: InsurancePlanCard) => (

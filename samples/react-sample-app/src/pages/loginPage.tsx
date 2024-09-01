@@ -17,14 +17,14 @@
  */
 
 import { useAuthContext } from "@asgardeo/auth-react";
-import React, { FunctionComponent, ReactElement, useCallback, useEffect } from "react";
+import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer, LoadingSpinner, NavBar } from "../components";
 import { Typography, Button, Box, TextField, Checkbox, FormControlLabel } from "@oxygen-ui/react";
 import { ReactComponent as GuardioFamily } from "../images/guardio-family.svg";
 
 export const LoginPage: FunctionComponent = (): ReactElement => {
-    const { state, signIn } = useAuthContext();
+    const { state } = useAuthContext();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,17 +32,6 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
             navigate("/");
         }
     }, [state?.isAuthenticated, navigate]);
-
-    const handleLogin = useCallback(() => {
-        signIn()
-            .then(() => {
-                console.log("Sign-in initiated successfully");
-            })
-            .catch((error) => {
-                console.error("Error occurred while signing in:", error);
-                navigate("/generic-error", { state: { message: "Error occurred while signing in" } });
-            });
-    }, [navigate, signIn]);
 
     if (state?.isLoading) {
         return <LoadingSpinner />;

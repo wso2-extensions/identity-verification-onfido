@@ -18,11 +18,9 @@
 
 import React from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
-import { useNavigate } from "react-router-dom";
 import {
     AppBar,
     Toolbar,
-    Button,
     Box,
     Menu,
     MenuItem,
@@ -31,21 +29,12 @@ import {
 } from "@oxygen-ui/react";
 import guardioLogo from "../images/guardio-life-horizontal.webp";
 import avatarImage from "../images/avatar.png";
-import { UserPlusIcon, ArrowRightToBracketIcon } from "@oxygen-ui/react-icons";
 import { UserIcon, ArrowRightFromBracketIcon } from "@oxygen-ui/react-icons";
+import config from "../config.json";
 
 export const NavBar = () => {
-    const { state, signIn, signOut } = useAuthContext();
-    const navigate = useNavigate();
+    const { state, signOut } = useAuthContext();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
-    const handleLogin = () => {
-        signIn().catch((e) => console.log("Something went wrong while signing in. ", e));
-    };
-
-    const handleRegister = () => {
-        navigate("/register");
-    };
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -57,6 +46,11 @@ export const NavBar = () => {
 
     const handleLogout = () => {
         signOut().catch((e) => console.log("Something went wrong while signing out. ", e));
+        handleClose();
+    };
+
+    const handleMyAccount = () => {
+        window.open(config.userPortalURL, '_blank');
         handleClose();
     };
 
@@ -73,35 +67,8 @@ export const NavBar = () => {
                         style={{ height: '35px' }}
                     />
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'center', padding: '0 2rem' }}>
-                    {['Overview', 'Partners', 'Pricing', 'About Us', 'Contact'].map((item) => (
-                        <Button key={item} color="inherit" sx={{ mx: 1, color: 'text.secondary' }}>
-                            {item}
-                        </Button>
-                    ))}
-                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {!state?.isAuthenticated ? (
-                        <>
-                            <Button 
-                                color="primary" 
-                                variant="outlined" 
-                                onClick={handleRegister} 
-                                startIcon={<UserPlusIcon />}
-                                sx={{ mr: 2 }}
-                            >
-                                Register
-                            </Button>
-                            <Button 
-                                color="primary" 
-                                variant="contained" 
-                                onClick={handleLogin}
-                                startIcon={<ArrowRightToBracketIcon />}
-                            >
-                                Login
-                            </Button>
-                        </>
-                    ) : (
+                    {state?.isAuthenticated && (
                         <>
                             <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleMenu}>
                                 <Typography variant="body2" sx={{ ml: 1 }}>{state.username}</Typography>
@@ -139,7 +106,7 @@ export const NavBar = () => {
                                     }
                                 }}
                             >
-                                <MenuItem onClick={handleClose} sx={{ py: 1.5 }}>
+                                <MenuItem onClick={handleMyAccount} sx={{ py: 1.5 }}>
                                     <Box sx={{ mr: 2 }}>
                                         <UserIcon />
                                     </Box>
