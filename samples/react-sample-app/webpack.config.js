@@ -21,6 +21,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const { findPort } = require("dev-server-ports");
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const HOST = process.env.HOST || "localhost";
 const DEFAULT_PORT = process.env.PORT || 3000;
@@ -58,8 +59,7 @@ module.exports = async (env) => {
     return ({
         devServer: {
             static: {
-                directory: path.resolve(__dirname, "public"),
-                publicPath: baseUrl,
+                directory: path.join(__dirname, 'public'),
             },
             historyApiFallback: {
                 index: `${baseUrl}/index.html`,
@@ -119,7 +119,12 @@ module.exports = async (env) => {
             }),
             new HtmlWebpackPlugin({
                 template: "./public/index.html"
-            })
+            }),
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: 'public/runtime-config.json', to: '' }
+                ],
+            }),
         ],
         resolve: {
             extensions: [ ".tsx", ".ts", ".js", ".json" ],

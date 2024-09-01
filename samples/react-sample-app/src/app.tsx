@@ -16,12 +16,13 @@
  * under the License.
  */
 
+import React, { useState, useEffect } from 'react';
+import { loadConfig } from './configLoader';
 import { AuthProvider, useAuthContext } from "@asgardeo/auth-react";
-import React, { FunctionComponent, ReactElement } from "react";
+import { FunctionComponent, ReactElement } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@oxygen-ui/react";
-import { default as authConfig } from "./config.json";
 import { ErrorBoundary } from "./error-boundary";
 import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage } from "./pages";
 import { LoadingSpinner } from "./components";
@@ -50,13 +51,29 @@ const AppContent: FunctionComponent = (): ReactElement => {
     )
 };
 
-const App = () => (
-    <AuthProvider config={authConfig}>
-        <ThemeProvider theme={Theme} defaultMode="light">
-            <AppContent/>
-        </ThemeProvider>
-    </AuthProvider>
-);
+const App = () => {
+    const [config, setConfig] = useState(null);
+
+    useEffect(() => {
+        loadConfig().then(loadedConfig => {
+            setConfig(loadedConfig);
+        }).catch(error => {
+            console.error('Error loading config:', error);
+        });
+    }, []);
+
+    if (!config) {
+        return <div>Loading...</div>;
+    }
+
+    return (
+        <AuthProvider config={config}>
+            <ThemeProvider theme={Theme} defaultMode="light">
+                <AppContent/>
+            </ThemeProvider>
+        </AuthProvider>
+    );
+};
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
