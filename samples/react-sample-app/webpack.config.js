@@ -58,7 +58,7 @@ module.exports = async (env) => {
     return ({
         devServer: {
             static: {
-                directory: path.resolve(__dirname, "dist"),
+                directory: path.resolve(__dirname, "public"),
                 publicPath: baseUrl,
             },
             historyApiFallback: {
@@ -118,7 +118,7 @@ module.exports = async (env) => {
                 "process.env": JSON.stringify(envVars),
             }),
             new HtmlWebpackPlugin({
-                template: "./src/index.html"
+                template: "./public/index.html"
             })
         ],
         resolve: {

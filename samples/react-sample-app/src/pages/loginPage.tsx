@@ -21,7 +21,7 @@ import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer, LoadingSpinner, NavBar } from "../components";
 import { Typography, Button, Box, TextField, Checkbox, FormControlLabel } from "@oxygen-ui/react";
-import { ReactComponent as GuardioFamily } from "../images/guardio-family.svg";
+import { ReactComponent as GuardioFamily } from "../../public/images/guardio-family.svg";
 
 export const LoginPage: FunctionComponent = (): ReactElement => {
     const { state } = useAuthContext();

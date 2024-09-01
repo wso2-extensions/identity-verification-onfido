@@ -17,7 +17,7 @@
  */
 
 import React, { FunctionComponent, PropsWithChildren, ReactElement } from "react";
-import FOOTER_LOGOS from "../images/footer.png";
+import FOOTER_LOGOS from "../../public/images/footer.png";
 
 /**
  * Decoded ID Token Response component Prop types interface.

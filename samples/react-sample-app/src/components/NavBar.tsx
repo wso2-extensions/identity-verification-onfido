@@ -27,8 +27,8 @@ import {
     Avatar,
     Typography,
 } from "@oxygen-ui/react";
-import guardioLogo from "../images/guardio-life-horizontal.webp";
-import avatarImage from "../images/avatar.png";
+import guardioLogo from "../../public/images/guardio-life-horizontal.webp";
+import avatarImage from "../../public/images/avatar.png";
 import { UserIcon, ArrowRightFromBracketIcon } from "@oxygen-ui/react-icons";
 import config from "../config.json";
 
