@@ -1,6 +1,6 @@
 # Life Guardian - Onfido Connector Usage Example (Single Page Application)
 
-This sample application demonstrates how to perform identity verification with Onfido using WSO2 Identity Server in a Single Page Application (SPA).
+This sample application demonstrates how to perform identity verification with Onfido using WSO2 Identity Server in a Single Page Application (SPA). This application is developed primarily focusing the Forrester demo.
 
 ## Getting Started
 
@@ -11,7 +11,7 @@ This sample application demonstrates how to perform identity verification with O
 
 Follow the instructions in the [WSO2 Identity Server Documentation](https://is.docs.wso2.com/en/latest/guides/applications/register-single-page-app/) to register your application.
 
-Ensure you add `https://localhost:3000` as a Redirect URL and also include it under Allowed Origins.
+Ensure you add `https://localhost:3000/guardio-life/subscriptions` as a Redirect URL and also include `https://localhost:3000` under Allowed Origins.
 
 ### Configuring the Sample Application
 
@@ -22,14 +22,13 @@ Ensure you add `https://localhost:3000` as a Redirect URL and also include it un
     {
         "clientID": "<CLIENT_ID>",
         "baseUrl": "https://<DOMAIN_NAME>/t/<TENANT_NAME>",
-        "signInRedirectURL": "https://localhost:3000",
-        "signOutRedirectURL": "https://localhost:3000",
+        "signInRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
+        "signOutRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
         "userPortalURL": "https://<DOMAIN_NAME>/t/<TENANT_NAME>/myaccount",
         "scope": [ "openid", "profile", "internal_login"],
         "identityVerificationProviderId": "<ONFIDO_IDVP_ID>"
     }
     ```
-3. Create a `.env` file in the root of the application (Refer the .env.example provided)
 
 ### Running the Application
 
@@ -38,7 +37,7 @@ Run the following commands to install dependencies and start the application:
 ```bash
 npm install && npm start
 ```
-The application will open at [`https://localhost:3000`](https://localhost:3000).
+The application will open at [`https://localhost:3000/guardio-life/subscriptions`](https://localhost:3000/guardio-life/subscriptions).
 
 ### Changing the Application's Development Server Port
 
