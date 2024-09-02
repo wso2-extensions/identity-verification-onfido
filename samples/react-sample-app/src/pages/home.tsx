@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { isClaimVerified } from "../api";
 import { AgeVerificationDrawer, Footer, LoadingSpinner, NavBar, Plans } from "../components";
 import { ClaimVerificationStatus, WorkflowStatus } from "../model/identity-verification";
+import { useConfig } from "../configContext";
 
 /**
  * Home page for the Sample.
@@ -32,6 +33,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
     const { state, signIn } = useAuthContext();
     const navigate = useNavigate();
     const location = useLocation();
+    const config = useConfig();
 
     const [verificationStatus, setVerificationStatus] = useState<ClaimVerificationStatus | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
@@ -39,7 +41,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const checkVerificationStatus = useCallback(() => {
-        isClaimVerified("http://wso2.org/claims/dob")
+        isClaimVerified("http://wso2.org/claims/dob", config)
             .then((status: ClaimVerificationStatus) => {
                 console.log("Verification status:", status);
                 setVerificationStatus(status);
@@ -85,7 +87,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
             .then(() => {
                 setIsLoading(false);
             });
-    }, [navigate]);
+    }, [config, navigate]);
 
     useEffect(() => {
         if (!state?.isAuthenticated) {

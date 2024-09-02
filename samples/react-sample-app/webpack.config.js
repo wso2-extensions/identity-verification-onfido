@@ -38,8 +38,8 @@ const generatePortInUsePrompt = () => {
     return `Be sure to update the following configurations if you proceed with the port change.
 
     1. Update the "PORT" in ".env" file in the app root.
-    2. Update the signInRedirectURL & signOutRedirectURL in "src/config.json".
-    3. Go to the Asgardeo console and navigate to the protocol tab of your application:
+    2. Update the signInRedirectURL & signOutRedirectURL in "src/runtime-config.json".
+    3. Go to the Identity server/Asgardeo console and navigate to the protocol tab of your application:
         - Update the Authorized Redirect URL.
         - Update the Allowed Origins.
 `;
@@ -122,7 +122,13 @@ module.exports = async (env) => {
             }),
             new CopyWebpackPlugin({
                 patterns: [
-                    { from: 'public/runtime-config.json', to: '' }
+                    { 
+                        from: 'public', 
+                        to: '',
+                        globOptions: {
+                            ignore: ['**/index.html']
+                        }
+                    }
                 ],
             }),
         ],

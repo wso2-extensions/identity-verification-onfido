@@ -16,24 +16,19 @@
  * under the License.
  */
 
-export interface ConfigInterface {
-  clientID: string;
-  baseUrl: string;
-  signInRedirectURL: string;
-  signOutRedirectURL: string;
-  userPortalURL: string;
-  scope: string[];
-  identityVerificationProviderId: string;
-}
+import React, { createContext, useContext, ReactNode } from 'react';
+import { ConfigInterface } from './configLoader';
 
-export async function loadConfig(): Promise<ConfigInterface> {
-  try {
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/runtime-config.json`);
-    const runtimeConfig = await response.json();
+const ConfigContext = createContext(null);
 
-    return runtimeConfig;
-  } catch (error) {
-    console.error('Failed to load runtime config', error);
-    throw new Error('Failed to load runtime config');
-  }
-}
+export const ConfigProvider = ({ config, children }: { config: ConfigInterface; children: ReactNode }) => {
+    return (
+        <ConfigContext.Provider value={config}>
+            {children}
+        </ConfigContext.Provider>
+    );
+};
+
+export const useConfig = () => {
+    return useContext(ConfigContext);
+};

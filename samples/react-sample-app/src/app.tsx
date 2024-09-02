@@ -27,6 +27,7 @@ import { ErrorBoundary } from "./error-boundary";
 import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage } from "./pages";
 import { LoadingSpinner } from "./components";
 import Theme from './styles/guardioTheme';
+import { ConfigProvider } from './configContext';
 
 const AppContent: FunctionComponent = (): ReactElement => {
     const { error, state } = useAuthContext();
@@ -67,11 +68,13 @@ const App = () => {
     }
 
     return (
-        <AuthProvider config={config}>
-            <ThemeProvider theme={Theme} defaultMode="light">
-                <AppContent/>
-            </ThemeProvider>
-        </AuthProvider>
+        <ConfigProvider config={config}>
+            <AuthProvider config={config}>
+                <ThemeProvider theme={Theme} defaultMode="light">
+                    <AppContent/>
+                </ThemeProvider>
+            </AuthProvider>
+        </ConfigProvider>
     );
 };
 

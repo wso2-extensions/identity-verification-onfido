@@ -17,9 +17,7 @@
  */
 
 import * as React from 'react';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
+import { Button, Typography, Container, Box } from '@oxygen-ui/react';
 import { Footer, NavBar } from "../components";
 import { useNavigate } from "react-router-dom";
 
@@ -30,23 +28,24 @@ export const VerificationInProgressPage = () => {
     return (
         <>
             <NavBar/>
-            <Container disableGutters maxWidth="sm" component="main" sx={{ pt: 8, pb: 6, minHeight: "70vh" }}>
+            <Container disableGutters maxWidth="sm" component="main" style={{ paddingTop: 64, paddingBottom: 48, minHeight: "70vh" }}>
                 <Typography
-                    component="h5"
                     variant="h4"
                     align="center"
                     color="text.primary"
                     gutterBottom
-                    sx={{ mb: 3 }}
+                    style={{ marginBottom: 24 }}
                 >
                     Age Verification in Progress!
                 </Typography>
-                <Typography variant="h6" align="center" color="text.secondary" component="p">
+                <Typography variant="h6" align="center" color="text.secondary">
                     Once the verification is complete, you can access the Guardio Life Web Portal.
                 </Typography>
-                <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
-                    Back to home
-                </Button>
+                <Box display="flex" justifyContent="center" style={{ marginTop: 24 }}>
+                    <Button variant="outlined" onClick={() => navigate("/")}>
+                        Back to home
+                    </Button>
+                </Box>
             </Container>
             <Footer/>
         </>

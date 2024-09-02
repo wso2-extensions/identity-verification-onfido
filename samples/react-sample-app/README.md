@@ -16,7 +16,7 @@ Ensure you add `https://localhost:3000` as a Redirect URL and also include it un
 ### Configuring the Sample Application
 
 1. Navigate to the `identity-verification-onfido-sample-app/samples/react-sample-app/src` directory.
-2. Open the `config.json` file and update it with your registered application and Onfido Identity Verification Provider details:
+2. Open the `runtime-config.json` file and update it with your registered application and Onfido Identity Verification Provider details:
 
     ```json
     {
@@ -24,15 +24,12 @@ Ensure you add `https://localhost:3000` as a Redirect URL and also include it un
         "baseUrl": "https://<DOMAIN_NAME>/t/<TENANT_NAME>",
         "signInRedirectURL": "https://localhost:3000",
         "signOutRedirectURL": "https://localhost:3000",
+        "userPortalURL": "https://<DOMAIN_NAME>/t/<TENANT_NAME>/myaccount",
         "scope": [ "openid", "profile", "internal_login"],
         "identityVerificationProviderId": "<ONFIDO_IDVP_ID>"
     }
     ```
-3. Create a `.env` file in the root of the application and add the following:
-
-    ```
-    HTTPS="true"
-    ```
+3. Create a `.env` file in the root of the application (Refer the .env.example provided)
 
 ### Running the Application
 
@@ -48,7 +45,7 @@ The application will open at [`https://localhost:3000`](https://localhost:3000).
 If you need to run the development server on a different port, follow these steps:
 
 1. Update the `PORT` in the `.env` file located at the root of the application.
-2. Update the `signInRedirectURL` and `signOutRedirectURL` in the `src/config.json` file.
-3. Go to the Asgardeo Console and navigate to the **Protocol** tab of your application:
+2. Update the `signInRedirectURL` and `signOutRedirectURL` in the `src/runtime-config.json` file.
+3. Go to the Identity Server/Asgardeo Console and navigate to the **Protocol** tab of your application:
     - Update the **Authorized Redirect URL**.
     - Update the **Allowed Origins**.

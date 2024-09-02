@@ -17,7 +17,8 @@
  */
 
 import React, { FunctionComponent, PropsWithChildren, ReactElement } from "react";
-import FOOTER_LOGOS from "../../public/images/footer.png";
+
+const FOOTER_LOGO_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/footer.png`;
 
 /**
  * Decoded ID Token Response component Prop types interface.
@@ -64,7 +65,7 @@ export const DefaultLayout: FunctionComponent<PropsWithChildren<DefaultLayoutPro
                             : children
                 }
             </div>
-            <img src={FOOTER_LOGOS} className="footer-image"/>
+            <img src={FOOTER_LOGO_IMAGE} className="footer-image"/>
         </>
     );
 };

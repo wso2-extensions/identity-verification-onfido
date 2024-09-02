@@ -19,34 +19,34 @@
 import { HttpRequestConfig, HttpResponse } from "@asgardeo/auth-react";
 import { IdVClaim, SdkFlowStatus, IdVResponseInterface, ClaimVerificationStatus } from "../model/identity-verification";
 import { IdVConstants } from "../constants";
-import { default as authConfig } from "../config.json";
 import { AsgardeoSPAClient } from "@asgardeo/auth-react";
+import { ConfigInterface } from "../configLoader";
 
 const httpClient = AsgardeoSPAClient.getInstance();
 
-export const initiateVerification = async (): Promise<IdVResponseInterface> => {
-    return changeVerificationStatus(SdkFlowStatus.INITIATED)
+export const initiateVerification = async (config: ConfigInterface): Promise<IdVResponseInterface> => {
+    return changeVerificationStatus(SdkFlowStatus.INITIATED, config)
 }
 
-export const completeVerification = async (): Promise<IdVResponseInterface> => {
-    return changeVerificationStatus(SdkFlowStatus.COMPLETED);
+export const completeVerification = async (config: ConfigInterface): Promise<IdVResponseInterface> => {
+    return changeVerificationStatus(SdkFlowStatus.COMPLETED, config);
 }
 
-export const reinitiateVerification = async (): Promise<IdVResponseInterface> => {
-    return changeVerificationStatus(SdkFlowStatus.REINITIATED);
+export const reinitiateVerification = async (config: ConfigInterface): Promise<IdVResponseInterface> => {
+    return changeVerificationStatus(SdkFlowStatus.REINITIATED, config);
 }
 
-const changeVerificationStatus = async (status: SdkFlowStatus): Promise<IdVResponseInterface> => {
+const changeVerificationStatus = async (status: SdkFlowStatus, config: ConfigInterface): Promise<IdVResponseInterface> => {
 
     const requestConfig: HttpRequestConfig = {
-        url: `${authConfig?.baseUrl}/api/users/v1/me/idv/verify`,
+        url: `${config?.baseUrl}/api/users/v1/me/idv/verify`,
         method: IdVConstants.HTTP_POST,
         headers: {
             'Content-Type': IdVConstants.APPLICATION_JSON,
             'Accept': IdVConstants.APPLICATION_JSON
         },
         data: {
-            "idVProviderId": authConfig?.identityVerificationProviderId,
+            "idVProviderId": config?.identityVerificationProviderId,
             "claims": [
                 "http://wso2.org/claims/dob",
                 "http://wso2.org/claims/givenname",
@@ -70,17 +70,17 @@ const changeVerificationStatus = async (status: SdkFlowStatus): Promise<IdVRespo
         });
 }
 
-export const isClaimVerified = async (claimToVerify: string): Promise<ClaimVerificationStatus> => {
+export const isClaimVerified = async (claimToVerify: string, config: ConfigInterface): Promise<ClaimVerificationStatus> => {
 
     const requestConfig: HttpRequestConfig = {
-        url: `${authConfig?.baseUrl}/api/users/v1/me/idv/claims/`,
+        url: `${config?.baseUrl}/api/users/v1/me/idv/claims/`,
         method: IdVConstants.HTTP_GET,
         headers: {
             'Content-Type': IdVConstants.URL_ENCODED,
             'Accept': IdVConstants.APPLICATION_JSON
         },
         params: {
-            "idVProviderId": authConfig?.identityVerificationProviderId ?? "",
+            "idVProviderId": config?.identityVerificationProviderId ?? "",
         }
     }
 

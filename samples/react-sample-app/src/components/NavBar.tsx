@@ -27,14 +27,13 @@ import {
     Avatar,
     Typography,
 } from "@oxygen-ui/react";
-import guardioLogo from "../../public/images/guardio-life-horizontal.webp";
-import avatarImage from "../../public/images/avatar.png";
 import { UserIcon, ArrowRightFromBracketIcon } from "@oxygen-ui/react-icons";
-import config from "../config.json";
+import { useConfig } from "../configContext";
 
 export const NavBar = () => {
     const { state, signOut } = useAuthContext();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const config = useConfig();
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -54,6 +53,9 @@ export const NavBar = () => {
         handleClose();
     };
 
+    const GUARDIO_LOGO_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/guardio-life-horizontal.webp`;
+    const AVATAR_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/avatar.png`;
+
     return (
         <AppBar position="sticky" color="default" elevation={0} sx={{ 
             borderBottom: (theme) => `1px solid ${theme.palette.divider}`, 
@@ -62,7 +64,7 @@ export const NavBar = () => {
             <Toolbar sx={{ justifyContent: 'space-between', padding: '0.5rem 2rem' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <img 
-                        src={guardioLogo}
+                        src={GUARDIO_LOGO_IMAGE}
                         alt="Guardio Life" 
                         style={{ height: '35px' }}
                     />
@@ -74,7 +76,7 @@ export const NavBar = () => {
                                 <Typography variant="body2" sx={{ ml: 1 }}>{state.username}</Typography>
                                 <Avatar 
                                     alt="User Avatar" 
-                                    src={avatarImage} 
+                                    src={AVATAR_IMAGE} 
                                     sx={{ 
                                         width: 35, 
                                         height: 38.2, 

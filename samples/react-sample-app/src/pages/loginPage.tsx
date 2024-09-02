@@ -21,7 +21,8 @@ import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Footer, LoadingSpinner, NavBar } from "../components";
 import { Typography, Button, Box, TextField, Checkbox, FormControlLabel } from "@oxygen-ui/react";
-import { ReactComponent as GuardioFamily } from "../../public/images/guardio-family.svg";
+
+const GUARDIO_FAMILY_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/guardio-family.svg`;
 
 export const LoginPage: FunctionComponent = (): ReactElement => {
     const { state } = useAuthContext();
@@ -58,7 +59,7 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
                     alignItems: 'center',
                     maxWidth: '60%'
                 }}>
-                    <GuardioFamily style={{ maxWidth: '100%', height: 'auto' }} />
+                    <img src={GUARDIO_FAMILY_IMAGE} style={{ maxWidth: '100%', height: 'auto' }} alt="Guardio Family" />
                 </Box>
                 <Box sx={{ 
                     flex: 1,

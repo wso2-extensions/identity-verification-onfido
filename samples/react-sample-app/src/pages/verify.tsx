@@ -23,6 +23,7 @@ import { completeVerification, initiateVerification, reinitiateVerification } fr
 import { IdVResponseInterface } from "../model/identity-verification";
 import { Footer, LoadingSpinner, NavBar } from "../components";
 import { Handle } from "onfido-sdk-ui/types/Onfido";
+import { useConfig } from "../configContext";
 
 interface VerifyPageProps {
     setVerificationInitiated?: (isInitiated: boolean) => void;
@@ -31,6 +32,7 @@ interface VerifyPageProps {
 
 export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
     const navigate = useNavigate();
+    const config = useConfig();
     const [loading, setLoading] = useState<boolean>(true);
     const [onfidoInstance, setOnfidoInstance] = useState<Handle | null>(null);
 
@@ -44,10 +46,10 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
 
             if (reinitiate) {
                 console.log("Reinitiating verification");
-                response = await reinitiateVerification();
+                response = await reinitiateVerification(config);
             } else {
                 console.log("Initiating verification");
-                response = await initiateVerification();
+                response = await initiateVerification(config);
             }
 
             console.log("Verification response:", response);
@@ -64,7 +66,7 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
                 useModal: false,
                 token,
                 onComplete: (data: any) => {
-                    completeVerification();
+                    completeVerification(config);
                     console.log('Verification completed', data);
                     navigate('/', { state: { idVerificationInitiated: true } });
                 },
