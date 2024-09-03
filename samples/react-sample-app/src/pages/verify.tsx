@@ -105,7 +105,15 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
     return (
         <>
             <NavBar/>
-            <div id="onfido-mount">
+            <div id="onfido-mount" style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '800px',
+                margin: '32px auto',
+                padding: '0 16px',
+            }}>
                 {loading && <LoadingSpinner/>}
             </div>
             <Footer/>
