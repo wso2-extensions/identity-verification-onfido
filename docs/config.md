@@ -10,7 +10,7 @@ a workflow in the Onfido Studio and generate the necessary tokens.
 ## Prerequisites
 
 1. You need to have an Onfido account for this connector to work. 
-Please [contact](https://www.evidentid.com/contact-sales/) the Onfido team and they will be happy to help.
+Please [contact](https://public.support.onfido.com/s/contactsupport) the Onfido team and they will be happy to help.
 2. This version of the connector is tested with WSO2 Identity Server version 7.0. 
 Make sure to download and set up the correct version of the
 [Identity Server](https://wso2.com/identity-and-access-management) in your environment.
