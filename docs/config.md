@@ -61,7 +61,7 @@ Make sure to download and set up the correct version of the
 1. Log in to the WSO2 Identity Server console using your admin credentials.
 2. In the WSO2 Identity Server Console, navigate to **Identity Verification Providers**.
 3. Click **+ New Identity Verification Provider** to create a new Identity Verification Provider (IDVP).
-4. You will be redirected to a page displaying a set of available IDVPs.
+4. You will be redirected to a page displaying a set of available IDVP templates.
 5. Click on `Create` under the Onfido IDVP.
 6. Enter a name for the Onfido IDVP and add the necessary configurations for the Onfido IDVP:
    - **API Token**: The API token generated via the Onfido dashboard.
