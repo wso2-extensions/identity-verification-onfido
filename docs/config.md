@@ -14,6 +14,13 @@ Please [contact](https://public.support.onfido.com/s/contactsupport) the Onfido 
 2. This version of the connector is tested with WSO2 Identity Server version 7.0. 
 Make sure to download and set up the correct version of the
 [Identity Server](https://wso2.com/identity-and-access-management) in your environment.
+3. By default, the Identity Verification Provider feature is not enabled in 
+WSO2 Identity Server version 7.0. To enable it, add the following configuration to the 
+deployment.toml file:
+   ```toml
+   [console.identity_verification_providers]
+   enabled = true
+   ```
 
 ## Setting up and Installing the Onfido Connector
 
