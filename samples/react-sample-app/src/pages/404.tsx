@@ -53,7 +53,7 @@ export const NotFoundPage: FunctionComponent = (): ReactElement => {
                     <Button 
                         color="primary" 
                         variant="outlined" 
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate(`${process.env.REACT_APP_BASE_URL}`)}
                         sx={{ mt: 2 }}
                     >
                         Go back to Home Page

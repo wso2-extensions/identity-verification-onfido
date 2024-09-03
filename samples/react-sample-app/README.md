@@ -15,7 +15,7 @@ Ensure you add `https://localhost:3000/guardio-life/subscriptions` as a Redirect
 
 ### Configuring the Sample Application
 
-1. Navigate to the `identity-verification-onfido-sample-app/samples/react-sample-app/src` directory.
+1. Navigate to the `identity-verification-onfido-sample-app/samples/react-sample-app/public` directory.
 2. Open the `runtime-config.json` file and update it with your registered application and Onfido Identity Verification Provider details:
 
     ```json

@@ -42,7 +42,7 @@ export const VerificationInProgressPage = () => {
                     Once the verification is complete, you can access the Guardio Life Web Portal.
                 </Typography>
                 <Box display="flex" justifyContent="center" style={{ marginTop: 24 }}>
-                    <Button variant="outlined" onClick={() => navigate("/")}>
+                    <Button variant="outlined" onClick={() => navigate(`${process.env.REACT_APP_BASE_URL}`)}>
                         Back to home
                     </Button>
                 </Box>
