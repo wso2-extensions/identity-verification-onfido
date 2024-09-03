@@ -26,7 +26,6 @@ import org.wso2.carbon.user.core.service.RealmService;
  */
 public class OnfidoIDVDataHolder {
 
-    public static OnfidoIDVDataHolder instance = new OnfidoIDVDataHolder();
     private static RealmService realmService;
     private static IdentityVerificationManager identityVerificationManager;
 
@@ -34,12 +33,12 @@ public class OnfidoIDVDataHolder {
 
     }
 
-    public static OnfidoIDVDataHolder getInstance() {
-
-        return instance;
-    }
-
-    public IdentityVerificationManager getIdentityVerificationManager() {
+    /**
+     * Get the IdentityVerificationManager.
+     *
+     * @return IdentityVerificationManager instance.
+     */
+    public static IdentityVerificationManager getIdentityVerificationManager() {
 
         if (identityVerificationManager == null) {
             throw new RuntimeException("IdentityVerificationManager was not set during the " +
@@ -48,7 +47,12 @@ public class OnfidoIDVDataHolder {
         return identityVerificationManager;
     }
 
-    public void setIdentityVerificationManager(IdentityVerificationManager identityVerificationManager) {
+    /**
+     * Sets the IdentityVerificationManager.
+     *
+     * @param identityVerificationManager IdentityVerificationManager instance.
+     */
+    public static void setIdentityVerificationManager(IdentityVerificationManager identityVerificationManager) {
 
         OnfidoIDVDataHolder.identityVerificationManager = identityVerificationManager;
     }
@@ -58,7 +62,7 @@ public class OnfidoIDVDataHolder {
      *
      * @return RealmService.
      */
-    public RealmService getRealmService() {
+    public static RealmService getRealmService() {
 
         if (realmService == null) {
             throw new RuntimeException("RealmService was not set during the " +
@@ -72,7 +76,7 @@ public class OnfidoIDVDataHolder {
      *
      * @param realmService RealmService.
      */
-    public void setRealmService(RealmService realmService) {
+    public static void setRealmService(RealmService realmService) {
 
         OnfidoIDVDataHolder.realmService = realmService;
     }
