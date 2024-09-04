@@ -64,7 +64,7 @@ export const GenericErrorPage: React.FC = () => {
                         <Button
                             color="primary" 
                             variant="outlined"
-                            onClick={() => navigate(`${process.env.REACT_APP_BASE_URL}`)}
+                            onClick={() => navigate("/")}
                             sx={{ mt: 3 }}
                         >
                             Back to Home
