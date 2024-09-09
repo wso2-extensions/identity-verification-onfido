@@ -1,7 +1,7 @@
 {
   "Type": "ONFIDO",
   "Name": "Onfido",
-  "description": "ONFIDO Identity Verification Provider",
+  "description": "Enable identity verification through Onfido.",
   "isEnabled": true,
   "claims": [
     {
