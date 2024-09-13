@@ -41,7 +41,7 @@ export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
             case "info":
                 return 'gray'
             case "success":
-                return "#28a745" // vibrant green background for a success message
+                return "#59ba6f" // light green background for a success message
         }
     }
 
