@@ -121,7 +121,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
         if (!isAgeVerifiedSuccessMsgShown && verificationStatus?.isVerified === true) {
             setIsDrawerOpen(true)
             setDrawerMessageType("success")
-            setDrawerMessage("Age verification was succe")
+            setDrawerMessage("Age verification is successful! You're all set to continue with the subscription.")
             localStorage.setItem(state.username + "_isAgeVerifiedSuccessMsgShown", "true")
         }
     },[verificationStatus])
