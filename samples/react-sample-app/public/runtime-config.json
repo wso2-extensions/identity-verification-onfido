@@ -1,9 +1,9 @@
 {
-  "clientID": "Tus9QHgOFnb17V0SCayvy0u8vmsa",
-  "baseUrl": "https://localhost:9443",
+  "clientID": "XiHfEM3FNS88gmVM2JwH7XBYrKga",
+  "baseUrl": "https://is.wso2isdemo.com",
   "signInRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
   "signOutRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
   "userPortalURL": "https://localhost:9443/myaccount",
   "scope": ["openid", "profile", "internal_login"],
-  "identityVerificationProviderId": "b3cfbee2-1070-47d3-b31e-962a82e9fa88"
+  "identityVerificationProviderId": "7cfd2f07-eae9-40fb-b061-1c546903d96f"
 }

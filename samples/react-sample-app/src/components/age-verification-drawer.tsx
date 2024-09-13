@@ -34,33 +34,32 @@ export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
     message,
     showButton
 }) => {
-    return (
-        <Drawer
-            anchor="bottom"
-            open={isOpen}
-            onClose={() => setIsOpen(false)}
-        >
+    return isOpen ? (
             <Box sx={{ 
-                p: 2, 
+                p: 2,
                 display: 'flex', 
-                flexDirection: 'column',
-                alignItems: 'center', 
-                backgroundColor: '#f5f5f5',
-                borderTop: '3px solid #1976d2'
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: "white",
+                fontWeight: "bold",
+                backgroundColor: 'gray'
+
             }}>
-                <Typography variant="body1" sx={{ mb: showButton ? 2 : 0 }}>
+                <Typography variant="body1">
                     {message}
                 </Typography>
                 {showButton && (
                     <Button
                         variant="contained"
                         onClick={verifyAge}
-                        sx={{ mt: 1 }}
+                        sx={{
+                            ml: 2
+                        }}
                     >
                         Verify Age
                     </Button>
                 )}
             </Box>
-        </Drawer>
-    );
+    ) : null;
 };
