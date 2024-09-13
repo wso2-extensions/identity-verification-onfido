@@ -37,6 +37,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
 
     const [verificationStatus, setVerificationStatus] = useState<ClaimVerificationStatus | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+    const [drawerMessageType, setDrawerMessageType] = useState("info");
     const [drawerMessage, setDrawerMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -108,6 +109,23 @@ export const HomePage: FunctionComponent = (): ReactElement => {
         }
     }, [state?.isAuthenticated, navigate, checkVerificationStatus, location, signIn]);
 
+    /**
+     * This useEffect tracks whether to display the age verification success message after 
+     * the user completes age verification. The message will only be shown once to enhance 
+     * user experience. If displayed previously, it will not appear again to prevent it 
+     * from lingering at the top of the subscription page on subsequent visits.
+     */
+    useEffect(() => {
+        const isAgeVerifiedSuccessMsgShown = localStorage.getItem(state.username + "_isAgeVerifiedSuccessMsgShown") === "true";
+
+        if (!isAgeVerifiedSuccessMsgShown && verificationStatus?.isVerified === true) {
+            setIsDrawerOpen(true)
+            setDrawerMessageType("success")
+            setDrawerMessage("Age verification was succe")
+            localStorage.setItem(state.username + "_isAgeVerifiedSuccessMsgShown", "true")
+        }
+    },[verificationStatus])
+
     const handleVerifyAge = () => {
         if (verificationStatus?.workflowStatus === WorkflowStatus.AWAITING_INPUT) {
             navigate("/verify", { state: { reinitiate: true } });
@@ -130,6 +148,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                 setIsOpen={setIsDrawerOpen}
                 verifyAge={handleVerifyAge}
                 message={drawerMessage}
+                type={drawerMessageType}
                 showButton={verificationStatus?.isVerified === undefined || verificationStatus?.workflowStatus === WorkflowStatus.AWAITING_INPUT}
             />
             <Plans isAgeVerified={verificationStatus?.isVerified === true} setIsDrawerOpen={setIsDrawerOpen} />

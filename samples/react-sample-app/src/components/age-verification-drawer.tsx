@@ -24,6 +24,7 @@ interface AgeVerificationDrawerProps {
     setIsOpen: (isOpen: boolean) => void;
     verifyAge: () => void;
     message: string;
+    type: string;
     showButton: boolean;
 }
 
@@ -32,8 +33,18 @@ export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
     setIsOpen,
     verifyAge,
     message,
+    type,
     showButton
 }) => {
+    const getBannerBackgroundColorByMessageType = (messageType: string) => {
+        switch(messageType){
+            case "info":
+                return 'gray'
+            case "success":
+                return "#28a745" // vibrant green background for a success message
+        }
+    }
+
     return isOpen ? (
             <Box sx={{ 
                 p: 2,
@@ -43,7 +54,7 @@ export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
                 justifyContent: 'center',
                 color: "white",
                 fontWeight: "bold",
-                backgroundColor: 'gray'
+                backgroundColor: getBannerBackgroundColorByMessageType(type)
 
             }}>
                 <Typography variant="body1">
