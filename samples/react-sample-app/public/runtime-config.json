@@ -1,9 +1,9 @@
 {
-  "clientID": "Tus9QHgOFnb17V0SCayvy0u8vmsa",
+  "clientID": "Tus9****Fnb17V0SC****0u8vmsa",
   "baseUrl": "https://localhost:9443",
-  "signInRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
-  "signOutRedirectURL": "https://localhost:3000/guardio-life/subscriptions",
+  "signInRedirectURL": "https://localhost:3000/subscriptions/",
+  "signOutRedirectURL": "https://localhost:3000/subscriptions/",
   "userPortalURL": "https://localhost:9443/myaccount",
   "scope": ["openid", "profile", "internal_login"],
-  "identityVerificationProviderId": "b3cfbee2-1070-47d3-b31e-962a82e9fa88"
+  "identityVerificationProviderId": "b3cfbee2-****-47d3-****-962a8****a88"
 }
