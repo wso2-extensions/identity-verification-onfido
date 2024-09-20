@@ -116,13 +116,13 @@ export const HomePage: FunctionComponent = (): ReactElement => {
      * from lingering at the top of the subscription page on subsequent visits.
      */
     useEffect(() => {
-        const isAgeVerifiedSuccessMsgShown = localStorage.getItem(state.username + "_isAgeVerifiedSuccessMsgShown") === "true";
+        const isAgeVerifiedSuccessMsgShown = localStorage.getItem(state.sub + "_isAgeVerifiedSuccessMsgShown") === "true";
 
         if (!isAgeVerifiedSuccessMsgShown && verificationStatus?.isVerified === true) {
             setIsDrawerOpen(true)
             setDrawerMessageType("success")
             setDrawerMessage("Age verification is successful! You're all set to continue with the subscription.")
-            localStorage.setItem(state.username + "_isAgeVerifiedSuccessMsgShown", "true")
+            localStorage.setItem(state.sub + "_isAgeVerifiedSuccessMsgShown", "true")
         }
     },[verificationStatus])
 
