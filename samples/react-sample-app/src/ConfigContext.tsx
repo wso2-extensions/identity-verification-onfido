@@ -17,7 +17,7 @@
  */
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { ConfigInterface } from './configLoader';
+import { ConfigInterface } from './config-loader';
 
 const ConfigContext = createContext(null);
 

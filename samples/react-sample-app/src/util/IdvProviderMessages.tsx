@@ -1,6 +1,7 @@
 import React from "react";
 import { Typography, Container, Box, Link } from '@oxygen-ui/react';
-import { NavBar, Footer } from "../components";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
 
 export const handleMissingIdvpId = () => {
     return (

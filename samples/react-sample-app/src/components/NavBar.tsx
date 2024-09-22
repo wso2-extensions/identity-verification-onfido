@@ -28,7 +28,7 @@ import {
     Typography,
 } from "@oxygen-ui/react";
 import { UserIcon, ArrowRightFromBracketIcon } from "@oxygen-ui/react-icons";
-import { useConfig } from "../configContext";
+import { useConfig } from "../ConfigContext";
 
 export const NavBar = () => {
     const { state, signOut } = useAuthContext();

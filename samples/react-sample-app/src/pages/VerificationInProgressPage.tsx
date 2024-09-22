@@ -18,7 +18,8 @@
 
 import * as React from 'react';
 import { Button, Typography, Container, Box } from '@oxygen-ui/react';
-import { Footer, NavBar } from "../components";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
 import { useNavigate } from "react-router-dom";
 
 export const VerificationInProgressPage = () => {

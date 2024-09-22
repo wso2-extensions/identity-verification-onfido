@@ -20,7 +20,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, Paper, Typography } from '@oxygen-ui/react';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { NavBar, Footer } from '../components';
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
 
 interface LocationState {
     message?: string;

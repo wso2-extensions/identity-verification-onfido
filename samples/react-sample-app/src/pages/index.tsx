@@ -16,11 +16,12 @@
  * under the License.
  */
 
-export * from "./404";
-export * from "./home";
-export * from "./verify";
-export * from "./genericError";
-export * from "./success";
-export * from "./verification-in-progress";
-export * from "./loginPage";
-export * from "./AuthenticationFailure";
+export * from "./NotFoundPage";
+export * from "./HomePage";
+export * from "./VerifyPage";
+export * from "./GenericErrorPage";
+export * from "./SuccessPage";
+export * from "./VerificationInProgressPage";
+export * from "./LoginPage";
+export * from "./AuthenticationFailurePage";
+export * from "./InvalidSystemTimePage";

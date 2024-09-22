@@ -19,11 +19,13 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Onfido } from 'onfido-sdk-ui'
 import { useNavigate, useLocation } from "react-router-dom";
-import { completeVerification, initiateVerification, reinitiateVerification } from "../api";
+import { completeVerification, initiateVerification, reinitiateVerification } from "../api/identity-verification-client";
 import { IdVResponseInterface } from "../model/identity-verification";
-import { Footer, LoadingSpinner, NavBar } from "../components";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Handle } from "onfido-sdk-ui/types/Onfido";
-import { useConfig } from "../configContext";
+import { useConfig } from "../ConfigContext";
 
 interface VerifyPageProps {
     setVerificationInitiated?: (isInitiated: boolean) => void;

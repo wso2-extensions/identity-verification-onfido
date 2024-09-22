@@ -18,9 +18,9 @@
 
 import { HttpRequestConfig, HttpResponse } from "@asgardeo/auth-react";
 import { IdVClaim, SdkFlowStatus, IdVResponseInterface, ClaimVerificationStatus } from "../model/identity-verification";
-import { IdVConstants } from "../constants";
+import { IdVConstants } from "../constants/idv-constants";
 import { AsgardeoSPAClient } from "@asgardeo/auth-react";
-import { ConfigInterface } from "../configLoader";
+import { ConfigInterface } from "../config-loader";
 
 const httpClient = AsgardeoSPAClient.getInstance();
 

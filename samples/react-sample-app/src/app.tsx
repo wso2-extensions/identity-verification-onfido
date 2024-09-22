@@ -16,18 +16,30 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from 'react';
-import { loadConfig } from './configLoader';
-import { AuthProvider, useAuthContext } from "@asgardeo/auth-react";
-import { FunctionComponent, ReactElement } from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { ThemeProvider } from "@oxygen-ui/react";
-import { ErrorBoundary } from "./error-boundary";
-import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage, LoginPage, AuthenticationFailure } from "./pages";
-import { LoadingSpinner, ProtectedRoute } from "./components";
-import Theme from './styles/guardioTheme';
-import { ConfigProvider } from './configContext';
+import React, { useState, useEffect, FunctionComponent, ReactElement } from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+
+import { AuthProvider, useAuthContext } from '@asgardeo/auth-react';
+import { ThemeProvider } from '@oxygen-ui/react';
+
+import { loadConfig } from './config-loader';
+import GuardioTheme from './styles/guardio-theme';
+
+import { ConfigProvider } from './ConfigContext';
+import { ErrorBoundary } from './ErrorBoundary';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+import { 
+    HomePage, 
+    NotFoundPage, 
+    GenericErrorPage, 
+    VerificationInProgressPage, 
+    SuccessPage, 
+    VerifyPage, 
+    LoginPage, 
+    AuthenticationFailurePage } from "./pages";
 
 const AppContent: FunctionComponent = (): ReactElement => {
     const { error } = useAuthContext();
@@ -42,7 +54,7 @@ const AppContent: FunctionComponent = (): ReactElement => {
                     <Route path="/success" element={<ProtectedRoute><SuccessPage /></ProtectedRoute>} />
                     <Route path="/verification-in-progress" element={<ProtectedRoute><VerificationInProgressPage /></ProtectedRoute>} />
                     <Route path="/generic-error" element={<GenericErrorPage />} />
-                    <Route path="/auth-error" element={<AuthenticationFailure />} />
+                    <Route path="/auth-error" element={<AuthenticationFailurePage />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Router>
@@ -68,7 +80,7 @@ const App = () => {
     return (
         <ConfigProvider config={config}>
             <AuthProvider config={config}>
-                <ThemeProvider theme={Theme} defaultMode="light">
+                <ThemeProvider theme={GuardioTheme} defaultMode="light">
                     <AppContent/>
                 </ThemeProvider>
             </AuthProvider>

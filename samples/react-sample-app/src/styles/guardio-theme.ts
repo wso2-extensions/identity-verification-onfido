@@ -1,7 +1,7 @@
 import { extendTheme } from "@oxygen-ui/react";
 import { Theme as OxygenTheme } from "@oxygen-ui/react/models";
 
-const Theme: OxygenTheme = extendTheme({
+const GuardioTheme: OxygenTheme = extendTheme({
   colorSchemes: {
     light: {
       palette: {
@@ -114,4 +114,4 @@ const Theme: OxygenTheme = extendTheme({
   },
 });
 
-export default Theme;
+export default GuardioTheme;

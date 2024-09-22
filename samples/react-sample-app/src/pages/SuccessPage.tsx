@@ -19,7 +19,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Typography, Container, Box } from '@oxygen-ui/react';
-import { Footer, NavBar } from "../components";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
 
 export const SuccessPage = () => {
     const navigate = useNavigate();

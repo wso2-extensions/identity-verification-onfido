@@ -16,46 +16,48 @@
  * under the License.
  */
 
-import React, { FunctionComponent, ReactElement, useState } from "react";
-import { useAuthContext } from "@asgardeo/auth-react";
-import { Container, Box, Typography, Button } from "@mui/material";
-import { NavBar, Footer } from '../components';
+import React, { FunctionComponent, ReactElement } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button, Typography, Container, Box } from '@oxygen-ui/react';
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
 
 /**
- * Page to display Authentication Failure Page.
- *
- * @param {AuthenticationFailureInterface} props - Props injected to the component.
+ * Page to display for 404.
  *
  * @return {React.ReactElement}
  */
-export const AuthenticationFailure: FunctionComponent = (): ReactElement => {
-
-    const { signIn } = useAuthContext();
-    const [ hasAuthenticationErrors, setHasAuthenticationErrors ] = useState<boolean>(false);
-
-    const handleLogin = () => {
-        signIn()
-            .catch(() => setHasAuthenticationErrors(true));
-    };
+export const NotFoundPage: FunctionComponent = (): ReactElement => {
+    const navigate = useNavigate();
 
     return (
         <>
             <NavBar />
             <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography variant="h4" align="center" color="error" gutterBottom>
-                        Authentication Error!
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="text.primary"
+                        gutterBottom
+                    >
+                        404: Page Not Found
                     </Typography>
-                    <Typography variant="body1" align="center" sx={{ mb: 4 }}>
-                        Please check application configuration and try login again.
+                    <Typography 
+                        variant="h6" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        Sorry, the page you are looking for doesn&apos;t exist or has been moved.
                     </Typography>
                     <Button 
-                        variant="contained" 
                         color="primary" 
-                        onClick={handleLogin}
-                        disabled={hasAuthenticationErrors}
+                        variant="outlined" 
+                        onClick={() => navigate("/")}
+                        sx={{ mt: 2 }}
                     >
-                        Login
+                        Go back to Home Page
                     </Button>
                 </Box>
             </Container>

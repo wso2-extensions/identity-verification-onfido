@@ -19,11 +19,15 @@
 import { useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { isClaimVerified } from "../api";
-import { AgeVerificationDrawer, Footer, LoadingSpinner, NavBar, Plans } from "../components";
+import { isClaimVerified } from "../api/identity-verification-client";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
+import { AgeVerificationDrawer } from "../components/AgeVerificationDrawer";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { Plans } from "../components/Plans";
 import { ClaimVerificationStatus, WorkflowStatus } from "../model/identity-verification";
-import { useConfig } from "../configContext";
-import { handleMissingIdvpId } from "../util/idVProviderUtils";
+import { useConfig } from "../ConfigContext";
+import { handleMissingIdvpId } from "../util/IdvProviderMessages";
 
 /**
  * Home page for the Sample.

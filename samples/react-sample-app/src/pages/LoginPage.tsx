@@ -19,10 +19,12 @@
 import { useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Footer, LoadingSpinner, NavBar } from "../components";
+import { Footer } from "../components/Footer";
+import { NavBar } from "../components/NavBar";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Typography, Button, Box } from "@oxygen-ui/react";
-import { handleMissingClientId } from "../util";
-import { useConfig } from "../configContext";
+import { handleMissingClientId } from "../util/IdvProviderMessages";
+import { useConfig } from "../ConfigContext";
 
 const GUARDIO_FAMILY_IMAGE = `/images/guardio-family.svg`;
 
@@ -92,7 +94,7 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
                         Secure Your Family&apos;s Future
                     </Typography>
                     <Typography variant="body1" paragraph sx={{ mb: 4, fontSize: '1.1rem' }}>
-                        Log in to access your account and manage your insurance policies. We're here to protect what matters most to you.
+                        Log in to access your account and manage your insurance policies. We&apos;re here to protect what matters most to you.
                     </Typography>
                     <Button
                         onClick={handleLogin}
