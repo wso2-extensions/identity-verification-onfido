@@ -1,15 +1,85 @@
 import React from "react";
+import { Typography, Container, Box, Link } from '@oxygen-ui/react';
+import { NavBar, Footer } from "../components";
 
-// TODO: Revamp this to match the general look and feel
+export const handleMissingIdvpId = () => {
+    return (
+        <>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="error"
+                        gutterBottom
+                    >
+                        Identity Verification Provider ID Required
+                    </Typography>
+                    <Typography 
+                        variant="body1" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        Please open &quot;public/runtime-config.json&quot; file using an editor, and add
+                        the <code>identityVerificationProviderId</code> value with the configured Onfido identity verification provider&apos;s ID.
+                    </Typography>
+                    <Typography variant="body2" align="center">
+                        Visit the{' '}
+                        <Link 
+                            href="https://github.com/wso2-extensions/identity-verification-onfido/blob/main/docs/config.md#configuring-onfido-identity-verification-provider-in-wso2-identity-server-console"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            README
+                        </Link>
+                        {' '}for more details.
+                    </Typography>
+                </Box>
+            </Container>
+            <Footer />
+        </>
+    );
+}
+
 export const handleMissingClientId = () => {
     return (
-        <div className="content">
-            <h2>You need to update the Client ID to proceed.</h2>
-            <p>Please open &quot;src/runtime-config.json&quot; file using an editor, and update
-                the <code>clientID</code> value with the registered application&apos;s client ID.</p>
-            <p>Visit repo <a
-                href="https://github.com/asgardeo/asgardeo-auth-react-sdk/tree/master/samples/asgardeo-react-app">README</a> for
-                more details.</p>
-        </div>
+        <>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="error"
+                        gutterBottom
+                    >
+                        Client ID Required
+                    </Typography>
+                    <Typography 
+                        variant="body1" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        Please open &quot;public/runtime-config.json&quot; file using an editor, and add
+                        the <code>clientID</code> value with the registered application&apos;s client ID.
+                    </Typography>
+                    <Typography variant="body2" align="center">
+                        Visit the{' '}
+                        <Link 
+                            href="https://github.com/asgardeo/asgardeo-auth-react-sdk/tree/master/samples/asgardeo-react-app"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            README
+                        </Link>
+                        {' '}for more details.
+                    </Typography>
+                </Box>
+            </Container>
+            <Footer />
+        </>
     );
 }

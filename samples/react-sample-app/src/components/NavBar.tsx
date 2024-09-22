@@ -53,8 +53,8 @@ export const NavBar = () => {
         handleClose();
     };
 
-    const GUARDIO_LOGO_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/guardio-life-horizontal.webp`;
-    const AVATAR_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/avatar.png`;
+    const GUARDIO_LOGO_IMAGE = `/images/guardio-life-horizontal.webp`;
+    const AVATAR_IMAGE = `/images/avatar.png`;
 
     return (
         <AppBar position="sticky" color="default" elevation={0} sx={{ 

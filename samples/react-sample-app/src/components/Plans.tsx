@@ -16,49 +16,46 @@
  * under the License.
  */
 
-import { Card, CardContent, Button, Container, Grid, Box, Typography } from '@oxygen-ui/react';
-import { ButtonGroup, Button as MuiButton } from '@mui/material';
+import { Card, CardContent, Button, Container, Grid, Typography } from '@oxygen-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { InsurancePlanCard } from "../model/insurance-plan";
 import React from 'react';
-import EmailIcon from '@mui/icons-material/Email';
-import GroupIcon from '@mui/icons-material/Group';
 
 const plans: InsurancePlanCard[] = [
     {
         title: 'Retirement Plan',
         price: '20',
         description: [
-            'Increased ROI to 10%',
-            'Extended Hospitalization Cover',
-            'Lifetime Life Cover',
-            'Enhanced Critical Illness Cover',
+            '8% Minimum ROI',
+            'Hospitalization Cover',
+            '100 Years Plus - Life Cover',
+            'Critical Illness Cover',
         ],
-        buttonText: 'Upgrade',
+        buttonText: 'Get started',
         buttonVariant: 'contained',
     },
     {
-        title: 'Advanced Wealth Plan',
-        price: '30',
+        title: 'Wealth Plan',
+        price: '25',
         description: [
-            'Boosted ROI to 15%',
-            'Premium Hospitalization Cover',
-            'Increased Partial Withdrawals',
-            'Customizable Term Options',
+            '12% Minimum ROI',
+            'Hospitalization Cover',
+            'Partial Withdrawals',
+            'Flexible Term Options',
         ],
-        buttonText: 'Upgrade',
+        buttonText: 'Get started',
         buttonVariant: 'contained',
     },
     {
         title: 'Premium Relief Plan',
-        price: '35',
+        price: '30',
         description: [
-            'Maximum ROI of 18%',
-            'Comprehensive Hospitalization Cover',
-            'Extended Family Health Cover',
-            'Priority Claims Processing',
+            '16% Minimum ROI',
+            'Hospitalization Cover',
+            '100 Years Plus - Life Cover',
+            'Family Health Cover',
         ],
-        buttonText: 'Upgrade',
+        buttonText: 'Get started',
         buttonVariant: 'contained',
     },
 ];
@@ -88,11 +85,11 @@ export const Plans = (props: PlanProps) => {
     return (
         <Container maxWidth="lg" sx={{ py: 8, position: 'relative' }}>
             <Typography variant="h2" align="center" gutterBottom>
-                Upgrade Your Subscription
+                Choose Your Plan
             </Typography>
             <Typography align="center" sx={{ mt: 4, mb: 6 }}>
-                Enhance your Guardio Life plan to better suit your evolving needs. 
-                Enjoy improved benefits, higher coverage, and exclusive features with our premium upgrades.
+            Discover the plan that best fits your financial goals and protection needs. 
+                Each plan offers unique benefits tailored to different life stages and priorities.
             </Typography>
             <Grid container spacing={4} justifyContent="center">
                 {plans.map((plan: InsurancePlanCard) => (
@@ -109,18 +106,29 @@ export const Plans = (props: PlanProps) => {
                                 },
                             }}
                         >
-                            <CardContent sx={{ flexGrow: 1 }}>
-                                <Typography variant="h3" align="center" gutterBottom>
+                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
+                                <Typography 
+                                    variant="h3" 
+                                    align="center" 
+                                    sx={{ 
+                                        py: 2, 
+                                        backgroundColor: 'background.paper', 
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider'
+                                    }}
+                                >
                                     {plan.title}
                                 </Typography>
-                                <Typography variant="h4" align="center" sx={{ mb: 2 }}>
-                                    ${plan.price}<Typography component="span" variant="body2">/mo</Typography>
-                                </Typography>
-                                {plan.description.map((line) => (
-                                    <Typography key={line} align="center" sx={{ mb: 1 }}>
-                                        {line}
+                                <CardContent>
+                                    <Typography variant="h4" align="center" sx={{ mb: 2, mt: 1 }}>
+                                        ${plan.price}<Typography component="span" variant="body2">/mo</Typography>
                                     </Typography>
-                                ))}
+                                    {plan.description.map((line) => (
+                                        <Typography key={line} align="center" sx={{ mb: 1 }}>
+                                            {line}
+                                        </Typography>
+                                    ))}
+                                </CardContent>
                             </CardContent>
                             <CardContent>
                                 <Button

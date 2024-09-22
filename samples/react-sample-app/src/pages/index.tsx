@@ -21,5 +21,6 @@ export * from "./home";
 export * from "./verify";
 export * from "./genericError";
 export * from "./success";
-export * from "./verification-in-progress"
+export * from "./verification-in-progress";
 export * from "./loginPage";
+export * from "./AuthenticationFailure";

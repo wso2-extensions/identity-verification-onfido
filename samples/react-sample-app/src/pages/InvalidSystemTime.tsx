@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+ * Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -17,7 +17,9 @@
  */
 
 import React, { FunctionComponent, ReactElement } from "react";
-import { DefaultLayout } from "../layouts/default";
+import { Button, Typography, Container, Box } from '@oxygen-ui/react';
+import { Footer, NavBar } from "../components";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Page to display for Invalid System Time Page.
@@ -25,29 +27,40 @@ import { DefaultLayout } from "../layouts/default";
  * @return {React.ReactElement}
  */
 export const InvalidSystemTimePage: FunctionComponent = (): ReactElement => {
+    const navigate = useNavigate();
 
-    //TODO: Change the styling to match the rest of the pages
     return (
-        <DefaultLayout>
-            <h6 style={{
-                fontSize: "30px",
-                textTransform: "uppercase",
-                fontWeight: 600,
-                marginTop: "3rem",
-                marginBottom: "8px",
-                color: "#151515"
-            }}>
-                Your Clock is Invalid !
-            </h6>
-            <p style={{
-                fontSize: "20px",
-                fontWeight: 400,
-                marginTop: "3rem",
-                marginBottom: "3rem",
-                color: "#151515"
-            }}>
-                It looks like your computer&rsquo;s date and time is incorrect. Please validate and try again
-            </p>
-        </DefaultLayout>
+        <>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        align="center"
+                        color="error"
+                        gutterBottom
+                    >
+                        Your Clock is Invalid!
+                    </Typography>
+                    <Typography 
+                        variant="body1" 
+                        align="center" 
+                        color="text.secondary" 
+                        sx={{ mt: 2, mb: 4 }}
+                    >
+                        It looks like your computer&apos;s date and time is incorrect. 
+                        Please validate and try again.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => navigate("/")}
+                        sx={{ mt: 2 }}
+                    >
+                        Back to home
+                    </Button>
+                </Box>
+            </Container>
+            <Footer />
+        </>
     );
 };

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
+ * Copyright (c) 2024, WSO2 LLC. (https://www.wso2.com). All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,32 +24,30 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@oxygen-ui/react";
 import { ErrorBoundary } from "./error-boundary";
-import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage } from "./pages";
-import { LoadingSpinner } from "./components";
+import { HomePage, NotFoundPage, GenericErrorPage, VerificationInProgressPage, SuccessPage, VerifyPage, LoginPage, AuthenticationFailure } from "./pages";
+import { LoadingSpinner, ProtectedRoute } from "./components";
 import Theme from './styles/guardioTheme';
 import { ConfigProvider } from './configContext';
 
 const AppContent: FunctionComponent = (): ReactElement => {
-    const { error, state } = useAuthContext();
-
-    if (state?.isLoading) {
-        return <LoadingSpinner />;
-    }
+    const { error } = useAuthContext();
 
     return (
         <ErrorBoundary error={error}>
             <Router basename={process.env.REACT_APP_BASE_URL}>
                 <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/verify" element={<VerifyPage />} />
-                    <Route path="/success" element={<SuccessPage />} />
-                    <Route path="/verification-in-progress" element={<VerificationInProgressPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/verify" element={<ProtectedRoute><VerifyPage /></ProtectedRoute>} />
+                    <Route path="/success" element={<ProtectedRoute><SuccessPage /></ProtectedRoute>} />
+                    <Route path="/verification-in-progress" element={<ProtectedRoute><VerificationInProgressPage /></ProtectedRoute>} />
                     <Route path="/generic-error" element={<GenericErrorPage />} />
+                    <Route path="/auth-error" element={<AuthenticationFailure />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Router>
         </ErrorBoundary>
-    )
+    );
 };
 
 const App = () => {
@@ -64,7 +62,7 @@ const App = () => {
     }, []);
 
     if (!config) {
-        return <div>Loading...</div>;
+        return <LoadingSpinner />;
     }
 
     return (

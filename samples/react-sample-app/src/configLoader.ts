@@ -26,9 +26,9 @@ export interface ConfigInterface {
   identityVerificationProviderId: string;
 }
 
-export async function loadConfig(): Promise<ConfigInterface> {
+export const loadConfig = async () => {
   try {
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/runtime-config.json`);
+    const response = await fetch(`/runtime-config.json`);
     const runtimeConfig = await response.json();
 
     return runtimeConfig;

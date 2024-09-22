@@ -18,25 +18,42 @@
 
 import { useAuthContext } from "@asgardeo/auth-react";
 import React, { FunctionComponent, ReactElement, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Footer, LoadingSpinner, NavBar } from "../components";
-import { Typography, Button, Box, TextField, Checkbox, FormControlLabel } from "@oxygen-ui/react";
+import { Typography, Button, Box } from "@oxygen-ui/react";
+import { handleMissingClientId } from "../util";
+import { useConfig } from "../configContext";
 
-const GUARDIO_FAMILY_IMAGE = `${process.env.REACT_APP_BASE_URL}/images/guardio-family.svg`;
+const GUARDIO_FAMILY_IMAGE = `/images/guardio-family.svg`;
 
 export const LoginPage: FunctionComponent = (): ReactElement => {
-    const { state } = useAuthContext();
+    const { state, signIn } = useAuthContext();
     const navigate = useNavigate();
+    const location = useLocation();
+    const config = useConfig();
 
     useEffect(() => {
         if (state?.isAuthenticated) {
-            navigate("/");
+            const from = (location.state as any)?.from?.pathname || "/";
+            navigate(from, { replace: true });
         }
-    }, [state?.isAuthenticated, navigate]);
+    }, [state?.isAuthenticated, navigate, location]);
+
+    if (!config?.clientID) {
+        return handleMissingClientId();
+    }
 
     if (state?.isLoading) {
         return <LoadingSpinner />;
     }
+
+    const handleLogin = () => {
+        signIn()
+            .catch((error) => {
+                console.error("Error during sign-in:", error);
+                navigate('/auth-error');
+            });
+    };
 
     return (
         <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -69,60 +86,27 @@ export const LoginPage: FunctionComponent = (): ReactElement => {
                     pl: { md: 4 }
                 }}>
                     <Typography variant="h3" component="h1" gutterBottom fontWeight="bold" sx={{ mb: 1 }}>
-                        The Right Protection
+                        Welcome to Guardio Life
                     </Typography>
                     <Typography variant="h5" component="h2" gutterBottom color="text.secondary" sx={{ mb: 3 }}>
-                        for You and Your Family
+                        Secure Your Family&apos;s Future
                     </Typography>
                     <Typography variant="body1" paragraph sx={{ mb: 4, fontSize: '1.1rem' }}>
-                        Excellence in life insurance since 2001. We are one of the leading life insurers in the world. Choose your life with the most loved health insurance company.
+                        Log in to access your account and manage your insurance policies. We're here to protect what matters most to you.
                     </Typography>
-                    <Box component="form" noValidate sx={{ width: '100%' }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="email"
-                            placeholder="Your email"
-                            name="email"
-                            autoComplete="email"
-                            autoFocus
-                            InputProps={{
-                                sx: { 
-                                    fontSize: '1.1rem',
-                                    '&::placeholder': {
-                                        opacity: 1
-                                    }
-                                }
-                            }}
-                            sx={{ mb: 1 }}
-                        />
-                        <Typography variant="body2" sx={{ display: 'block', mb: 2, fontSize: '0.9rem' }}>
-                            Please enter your email in the above field if you wish to download our policy. Don&apos;t worry, we won&apos;t spam you.
-                        </Typography>
-                        <FormControlLabel
-                            control={<Checkbox value="subscribe" color="primary" />}
-                            label={
-                                <Typography sx={{ fontSize: '1rem' }}>
-                                    Subscribe me to the Guardio newsletter
-                                </Typography>
-                            }
-                            sx={{ mb: 2 }}
-                        />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ 
-                                py: 1.5, 
-                                backgroundColor: 'primary.light', 
-                                '&:hover': { backgroundColor: 'primary.main' },
-                                fontSize: '1.1rem'
-                            }}
-                        >
-                            Download Policy
-                        </Button>
-                    </Box>
+                    <Button
+                        onClick={handleLogin}
+                        fullWidth
+                        variant="contained"
+                        sx={{ 
+                            py: 1.5, 
+                            backgroundColor: 'primary.light', 
+                            '&:hover': { backgroundColor: 'primary.main' },
+                            fontSize: '1.1rem'
+                        }}
+                    >
+                        Log In
+                    </Button>
                 </Box>
             </Box>
             <Footer />

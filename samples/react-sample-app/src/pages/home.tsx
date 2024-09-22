@@ -23,6 +23,7 @@ import { isClaimVerified } from "../api";
 import { AgeVerificationDrawer, Footer, LoadingSpinner, NavBar, Plans } from "../components";
 import { ClaimVerificationStatus, WorkflowStatus } from "../model/identity-verification";
 import { useConfig } from "../configContext";
+import { handleMissingIdvpId } from "../util/idVProviderUtils";
 
 /**
  * Home page for the Sample.
@@ -30,7 +31,7 @@ import { useConfig } from "../configContext";
  * @return {React.ReactElement}
  */
 export const HomePage: FunctionComponent = (): ReactElement => {
-    const { state, signIn } = useAuthContext();
+    const { state } = useAuthContext();
     const navigate = useNavigate();
     const location = useLocation();
     const config = useConfig();
@@ -40,8 +41,14 @@ export const HomePage: FunctionComponent = (): ReactElement => {
     const [drawerMessageType, setDrawerMessageType] = useState("info");
     const [drawerMessage, setDrawerMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [missingIdvpContent, setMissingIdvpContent] = useState<React.ReactNode | null>(null);
 
     const checkVerificationStatus = useCallback(() => {
+        if (!config?.identityVerificationProviderId) {
+            setIsLoading(false);
+            setMissingIdvpContent(handleMissingIdvpId());
+            return;
+        }
         isClaimVerified("http://wso2.org/claims/dob", config)
             .then((status: ClaimVerificationStatus) => {
                 console.log("Verification status:", status);
@@ -50,7 +57,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                 if (status.isVerified === true) {
                     setIsDrawerOpen(false);
                 } else if (status.isVerified === undefined) {
-                    setDrawerMessage("You need to verify your age to upgrade your Guardio Life subscription.");
+                    setDrawerMessage("You need to verify your age and identity to select a Guardio Life plan.");
                     setIsDrawerOpen(true);
                 } else {
                     switch(status.workflowStatus) {
@@ -58,7 +65,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
                             setDrawerMessage("Your age verification was interrupted. Please resume the verification to continue.");
                             break;
                         case WorkflowStatus.PROCESSING:
-                            setDrawerMessage("Your age verification is in progress. Please check back later to complete your upgrade.");
+                            setDrawerMessage("Your age verification is in progress. Please check back later to complete your plan selection.");
                             break;
                         case WorkflowStatus.APPROVED:
                         case WorkflowStatus.DECLINED:
@@ -91,23 +98,13 @@ export const HomePage: FunctionComponent = (): ReactElement => {
     }, [config, navigate]);
 
     useEffect(() => {
-        if (!state?.isAuthenticated) {
-            signIn()
-                .catch((error) => {
-                    console.error("Error during sign-in:", error);
-                    navigate('/generic-error', { 
-                        state: { 
-                            message: "An error occurred during sign-in. Please try again later."
-                        }
-                    });
-                });
-        } else if (location?.state?.idVerificationInitiated) {
+        if (location?.state?.idVerificationInitiated) {
             navigate("/verification-in-progress");
         } else {
             setIsLoading(true);
             checkVerificationStatus();
         }
-    }, [state?.isAuthenticated, navigate, checkVerificationStatus, location, signIn]);
+    }, [navigate, checkVerificationStatus, location]);
 
     /**
      * This useEffect tracks whether to display the age verification success message after 
@@ -121,7 +118,7 @@ export const HomePage: FunctionComponent = (): ReactElement => {
         if (!isAgeVerifiedSuccessMsgShown && verificationStatus?.isVerified === true) {
             setIsDrawerOpen(true)
             setDrawerMessageType("success")
-            setDrawerMessage("Age verification is successful! You're all set to continue with the subscription.")
+            setDrawerMessage("Age verification is successful! You're all set to continue with selecting a plan.")
             localStorage.setItem(state.sub + "_isAgeVerifiedSuccessMsgShown", "true")
         }
     },[verificationStatus])
@@ -133,6 +130,10 @@ export const HomePage: FunctionComponent = (): ReactElement => {
             navigate("/verify");
         }
     };
+
+    if (missingIdvpContent) {
+        return <>{missingIdvpContent}</>;
+    }
 
     if (isLoading) {
         return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center"}}>

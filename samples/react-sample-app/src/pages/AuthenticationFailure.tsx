@@ -18,7 +18,8 @@
 
 import React, { FunctionComponent, ReactElement, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
-import { DefaultLayout } from "../layouts/default";
+import { Container, Box, Typography, Button } from "@mui/material";
+import { NavBar, Footer } from '../components';
 
 /**
  * Page to display Authentication Failure Page.
@@ -38,14 +39,27 @@ export const AuthenticationFailure: FunctionComponent = (): ReactElement => {
     };
 
     return (
-        <DefaultLayout hasErrors={hasAuthenticationErrors}>
-            <div className="content">
-                <div className="ui visible negative message">
-                    <div className="header"><b>Authentication Error!</b></div>
-                    <p>Please check application configuration and try login again!.</p>
-                </div>
-                <button className="btn primary" onClick={handleLogin}>Login</button>
-            </div>
-        </DefaultLayout>
+        <>
+            <NavBar />
+            <Container maxWidth="sm" sx={{ py: 8, minHeight: "70vh" }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography variant="h4" align="center" color="error" gutterBottom>
+                        Authentication Error!
+                    </Typography>
+                    <Typography variant="body1" align="center" sx={{ mb: 4 }}>
+                        Please check application configuration and try login again.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={handleLogin}
+                        disabled={hasAuthenticationErrors}
+                    >
+                        Login
+                    </Button>
+                </Box>
+            </Container>
+            <Footer />
+        </>
     );
 };
