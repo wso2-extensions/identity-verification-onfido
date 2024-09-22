@@ -54,8 +54,6 @@ export const VerifyPage: FunctionComponent<VerifyPageProps> = () => {
                 response = await initiateVerification(config);
             }
 
-            console.log("Verification response:", response);
-
             const token = response?.claims?.[0]?.claimMetadata?.sdk_token;
             const workflowRunId = response?.claims?.[0]?.claimMetadata?.onfido_workflow_run_id;
 

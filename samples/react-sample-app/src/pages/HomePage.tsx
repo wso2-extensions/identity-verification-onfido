@@ -55,7 +55,6 @@ export const HomePage: FunctionComponent = (): ReactElement => {
         }
         isClaimVerified("http://wso2.org/claims/dob", config)
             .then((status: ClaimVerificationStatus) => {
-                console.log("Verification status:", status);
                 setVerificationStatus(status);
                 
                 if (status.isVerified === true) {

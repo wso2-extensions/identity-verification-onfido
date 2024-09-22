@@ -44,7 +44,7 @@ export const NavBar = () => {
     };
 
     const handleLogout = () => {
-        signOut().catch((e) => console.log("Something went wrong while signing out. ", e));
+        signOut().catch((e) => console.error("Error while signing out. ", e));
         handleClose();
     };
 

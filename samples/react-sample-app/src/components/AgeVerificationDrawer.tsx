@@ -28,14 +28,16 @@ interface AgeVerificationDrawerProps {
     showButton: boolean;
 }
 
-export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = ({
-    isOpen,
-    setIsOpen,
-    verifyAge,
-    message,
-    type,
-    showButton
-}) => {
+export const AgeVerificationDrawer: React.FC<AgeVerificationDrawerProps> = (props) => {
+    const {
+        isOpen,
+        setIsOpen,
+        verifyAge,
+        message,
+        type,
+        showButton
+    } = props;
+
     const getBannerBackgroundColorByMessageType = (messageType: string) => {
         switch(messageType){
             case "info":

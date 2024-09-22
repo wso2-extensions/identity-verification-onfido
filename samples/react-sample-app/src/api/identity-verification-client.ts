@@ -88,7 +88,6 @@ export const isClaimVerified = async (claimToVerify: string, config: ConfigInter
         .then((response: HttpResponse<IdVClaim[]>) => {
             const claims = response.data as IdVClaim[];
             const claim = claims.find((claim) => claim.uri === claimToVerify);
-            console.log("Found claim : ", claim );
             return getClaimVerificationStatus(claim);
         })
         .catch((error) => {
@@ -96,7 +95,8 @@ export const isClaimVerified = async (claimToVerify: string, config: ConfigInter
         });
 }
 
-function getClaimVerificationStatus(claim: IdVClaim | undefined): ClaimVerificationStatus {
+export const getClaimVerificationStatus = (claim: IdVClaim): ClaimVerificationStatus => {
+    // If the claim is undefined, it means no verification has been initiated for this claim with Onfido
     if (!claim) {
         return { isVerified: undefined, workflowStatus: undefined };
     }
