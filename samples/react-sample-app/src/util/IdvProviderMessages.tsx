@@ -70,7 +70,7 @@ export const handleMissingClientId = () => {
                     <Typography variant="body2" align="center">
                         Visit the{' '}
                         <Link 
-                            href="https://github.com/asgardeo/asgardeo-auth-react-sdk/tree/master/samples/asgardeo-react-app"
+                            href="https://github.com/wso2-extensions/identity-verification-onfido/blob/main/samples/react-sample-app/README.md"
                             target="_blank"
                             rel="noopener noreferrer"
                         >

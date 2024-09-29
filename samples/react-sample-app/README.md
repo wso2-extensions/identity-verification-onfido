@@ -23,7 +23,7 @@ This sample showcases the seamless integration of identity verification in a rea
 
 Follow the instructions in the [WSO2 Identity Server Documentation](https://is.docs.wso2.com/en/latest/guides/applications/register-single-page-app/) to register your application.
 
-Ensure you add `https://localhost:3000/guardio-life/subscriptions` as a Redirect URL and also include `https://localhost:3000` under Allowed Origins.
+Ensure you add `https://localhost:3000` as a Redirect URL and also include `https://localhost:3000` under Allowed Origins.
 
 ### Configuring an Onfido Identity Verification Provider in the WSO2 Identity Server Console
 
