@@ -17,7 +17,7 @@ This sample showcases the seamless integration of identity verification in a rea
 
 ### Prerequisites
 - Ensure you have `Node.js` installed (version 10 or above).
-- Ensure that a user account is created, and the *first name*, *last name*, and *date of birth* are correctly set to match the details on the document that will be used for verification.
+- Ensure that [a user account is created through the WSO2 Identity Server console](https://is.docs.wso2.com/en/latest/guides/users/manage-users/#onboard-single-user), and the *first name*, *last name*, and *date of birth* are correctly set to match the details on the document that will be used for verification.
 
 ### Registering a Single Page Application in the WSO2 Identity Server Console
 
