@@ -1,0 +1,9 @@
+{
+  "clientID": "Tus9****Fnb17V0SC****0u8vmsa",
+  "baseUrl": "https://localhost:9443",
+  "signInRedirectURL": "https://localhost:3000",
+  "signOutRedirectURL": "https://localhost:3000",
+  "userPortalURL": "https://localhost:9443/myaccount",
+  "scope": ["openid", "profile", "internal_login"],
+  "identityVerificationProviderId": "b3cfbee2-****-47d3-****-962a8****a88"
+}
