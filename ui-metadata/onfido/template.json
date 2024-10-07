@@ -1,34 +1,37 @@
 {
-  "Type": "ONFIDO",
-  "Name": "Onfido",
-  "description": "Enable identity verification through Onfido.",
-  "isEnabled": true,
-  "claims": [
-    {
-      "localClaim": "http://wso2.org/claims/givenname",
-      "idvpClaim": "first_name"
-    },
-    {
-      "localClaim": "http://wso2.org/claims/lastname",
-      "idvpClaim": "last_name"
-    }
-  ],
-  "configProperties": [
-    {
-      "key": "token",
-      "value": ""
-    },
-    {
-      "key": "webhook_token",
-      "value": ""
-    },
-    {
-      "key": "workflow_id",
-      "value": ""
-    },
-    {
-      "key": "base_url",
-      "value": "https://api.eu.onfido.com/v3.6"
-    }
-  ]
+  "payload": {
+    "type": "ONFIDO",
+    "name": "Onfido",
+    "description": "Enable identity verification through Onfido.",
+    "image": "https://raw.githubusercontent.com/wso2-extensions/identity-verification-onfido/main/ui-metadata/images/onfido-icon.png",
+    "isEnabled": true,
+    "claims": [
+      {
+        "localClaim": "http://wso2.org/claims/givenname",
+        "idvpClaim": "first_name"
+      },
+      {
+        "localClaim": "http://wso2.org/claims/lastname",
+        "idvpClaim": "last_name"
+      }
+    ],
+    "configProperties": [
+      {
+        "key": "token",
+        "value": ""
+      },
+      {
+        "key": "webhook_token",
+        "value": ""
+      },
+      {
+        "key": "workflow_id",
+        "value": ""
+      },
+      {
+        "key": "base_url",
+        "value": "https://api.eu.onfido.com/v3.6"
+      }
+    ]
+  }
 }

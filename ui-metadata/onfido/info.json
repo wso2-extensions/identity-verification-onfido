@@ -1,5 +1,6 @@
 {
   "id": "ONFIDO",
+  "version": "v1.0.0",
   "name": "Onfido",
   "description": "Enable identity verification through Onfido.",
   "tags": ["Identity-Verification"],
