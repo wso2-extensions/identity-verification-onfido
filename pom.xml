@@ -245,6 +245,15 @@
         </dependencies>
     </dependencyManagement>
 
+    <scm>
+        <connection>scm:git:https://github.com/wso2-extensions/identity-verification-onfido.git</connection>
+        <url>https://github.com/wso2-extensions/identity-verification-onfido.git</url>
+        <developerConnection>
+            scm:git:https://github.com/wso2-extensions/identity-verification-onfido.git
+        </developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <build>
         <pluginManagement>
             <plugins>
