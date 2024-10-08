@@ -11,15 +11,22 @@
 					"required": true,
 					"placeholder": "My Identity Verification Provider",
 					"data-componentid": "idvp-create-wizard-idvp-name",
-					"validators": [
-						"uniqueValueValidator"
+					"handlers": [
+						{
+							"name": "uniqueIdentityVerificationProviderName",
+							"type": "initialize"
+						},
+						{
+							"name": "identityVerificationProviderName",
+							"type": "validation"
+						}
 					],
 					"helperText": "An unique name for the Identity Verification Provider."
 				},
 				{
 					"id": "token",
 					"aria-label": "API Token",
-					"name": "token",
+					"name": "configProperties.token",
 					"label": "API Token",
 					"type": "password",
 					"required": true,
@@ -29,7 +36,7 @@
 				{
 					"id": "workflow_id",
 					"aria-label": "Workflow ID",
-					"name": "workflow_id",
+					"name": "configProperties.workflow_id",
 					"label": "Workflow ID",
 					"type": "text",
 					"required": true,
@@ -39,7 +46,7 @@
 				{
 					"id": "base_url",
 					"aria-label": "Base URL",
-					"name": "base_url",
+					"name": "configProperties.base_url",
 					"label": "Base URL",
 					"type": "text",
 					"required": true,
@@ -53,9 +60,10 @@
 	"edit": {
 		"tabs": [
 			{
-				"id": "guide",
+				"id": "setup-guide",
 				"displayName": "Setup Guide",
-				"contentType": "guide"
+				"contentType": "guide",
+				"guide": "## OnFido Connector Configuration Instructions\n***\n***\n***\nThis guide outlines the steps to configure the OnFido Connector with ${productName}.\n***\n***\n***\n***\n### Obtain the OnFido Webhook token\n<!--rehype:numbered=true&content=1-->\n***\n***\nLogin to your OnFido dashboard and navigate to the Webhook configuration section. Generate the Webhook token by providing the following URL.\n***\n```bash\n${webhookUrl}\n```\n***\n***\n***\n***\n### Configure the OnFido connection\n<!--rehype:numbered=true&content=2-->\n***\n***\nNavigate to the [Settings tab](#tab=settings)<!--rehype:external=false--> and provide the obtained token to the Webhook Token field. Then click on Update to finish the setup.\n***\n***\n***\n***\n### Configure attribute mappings\n<!--rehype:numbered=true&content=3-->\n***\n***\nIf you need to provide additional attribute mappings, navigate to the [Attributes tab](#tab=attributes)<!--rehype:external=false--> and provide the attribute mappings.\n***\n***\n***\n***\n### Integrate OnFido Identity Verification into Your Application\n<!--rehype:numbered=true&content=4-->\n***\n***\nYou can integrate OnFido identity verification into your application, using the OnFido SDK.\n***\n***\nTo initiate the verification flow with OnFido, via ${productName} APls, the following Identity Verification Provider ID will be required. Please refer to the connector documentation for more details.\n***\n```bash\n${identityVerificationProviderId}\n``` "
 			},
 			{
 				"id": "general",
@@ -72,8 +80,11 @@
 							"required": true,
 							"placeholder": "My Identity Verification Provider",
 							"data-componentid": "idvp-edit-form-idvp-name",
-							"validators": [
-								"uniqueValueValidator"
+							"handlers": [
+								{
+									"name": "identityVerificationProviderName",
+									"type": "validation"
+								}
 							],
 							"helperText": "An unique name for the Identity Verification Provider."
 						},
@@ -100,7 +111,7 @@
 						{
 							"id": "token",
 							"aria-label": "API Token",
-							"name": "token",
+							"name": "configProperties.token",
 							"label": "API Token",
 							"type": "password",
 							"required": true,
@@ -110,7 +121,7 @@
 						{
 							"id": "webhook_token",
 							"aria-label": "Webhook Token",
-							"name": "webhook_token",
+							"name": "configProperties.webhook_token",
 							"label": "Webhook Token",
 							"type": "password",
 							"required": true,
@@ -120,7 +131,7 @@
 						{
 							"id": "workflow_id",
 							"aria-label": "Workflow ID",
-							"name": "workflow_id",
+							"name": "configProperties.workflow_id",
 							"label": "Workflow ID",
 							"type": "text",
 							"required": true,
@@ -130,11 +141,10 @@
 						{
 							"id": "base_url",
 							"aria-label": "Base URL",
-							"name": "base_url",
+							"name": "configProperties.base_url",
 							"label": "Base URL",
 							"type": "text",
 							"required": true,
-							"defaultValue": "https://api.eu.onfido.com/v3.6",
 							"data-componentid": "idvp-edit-form-base-url",
 							"helperText": "The base URL of OnFido server."
 						}
