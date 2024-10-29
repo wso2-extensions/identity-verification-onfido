@@ -10,8 +10,9 @@ a workflow in the Onfido Studio and generate the necessary tokens.
 ## Prerequisites
 
 1. You need to have an Onfido account for this connector to work. 
-Please [contact](https://public.support.onfido.com/s/contactsupport) the Onfido team and they will be happy to help.
-2. This version of the connector is tested with WSO2 Identity Server version 7.0. 
+Please [contact](https://onfido.com/signup/) the Onfido team and they will be happy to help. Ensure that comparison 
+checks are enabled to the account. For more details, refer to the [Onfido Comparison Checks documentation](https://documentation.onfido.com/api/latest/#data_comparison).
+2. This version of the connector is tested with WSO2 Identity Server version 7.0 and above. 
 Make sure to download and set up the correct version of the
 [Identity Server](https://wso2.com/identity-and-access-management) in your environment.
 3. By default, the Identity Verification Provider feature is not enabled in 
@@ -66,44 +67,65 @@ deployment.toml file:
 ## Configuring Onfido Identity Verification Provider in WSO2 Identity Server Console
 
 1. Log in to the WSO2 Identity Server console using your admin credentials.
-2. In the WSO2 Identity Server Console, navigate to **Identity Verification Providers**.
-3. Click **+ New Identity Verification Provider** to create a new Identity Verification Provider (IDVP).
-4. You will be redirected to a page displaying a set of available IDVP templates.
-5. Click on `Create` under the Onfido IDVP.
-6. Enter a name for the Onfido IDVP and add the necessary configurations for the Onfido IDVP:
+2. In the WSO2 Identity Server Console, navigate to **Connections** on the left-hand panel.
+3. Click **New Connection**.
+4. From the displayed templates click on `Create` under the Onfido connector.
+5. Enter a name for the Onfido connector and add the necessary configurations for the Onfido connector:
    - **API Token**: The API token generated via the Onfido dashboard.
-   - **Workflow ID**: The unique identifier for the Workflow created using Onfido Studio.
+   - **Workflow ID**: The unique identifier for the Workflow created using Onfido Studio. 
+   For more information refer [Onfido Workflow Setup Guide](onfido-setup-guide.md).
    - **Base URL**: The regional base URL for Onfido API calls.
-7. Once you have entered the configuration details, click on `Create`.
-8. You will be redirected to the Setup Guide for the newly created Onfido IDVP. Follow the instructions displayed:
+6. Once you have entered the configuration details, click on `Create`.
+7. You will be redirected to the Setup Guide for the newly created Onfido connector. Follow the instructions displayed:
    - Log in to your Onfido dashboard and navigate to the Webhook configuration section. Generate a Webhook token by 
    providing the displayed URL and selecting only the `workflow_run.completed` event.
-   - Return to the WSO2 console and navigate to the **Settings** tab of the newly created Onfido IDVP. 
+   - Return to the WSO2 console and navigate to the **Settings** tab of the newly created Onfido connector. 
    Enter the obtained token in the Webhook Token field, then click `Update` to finish the setup.
-   - If you need to provide additional attribute mappings, navigate to the **Attributes** tab and 
-   configure the mappings.
-9. After completing the configuration and mapping, your Onfido IDVP will be ready for use with WSO2 Identity Server. 
-You can now integrate Onfido's identity verification process into your applications.
+8. Now that you have created a connection for Onfido, ensure that the attributes used in Onfido are correctly mapped to 
+the attributes in Identity Server. To do this:
+   - Navigate to the **Attributes** tab of the newly created Onfido connector.
+   - Verify that first name and last name are already configured as mandatory attributes. 
+   - To add other attribute mappings, click **Add Attribute Mapping**. 
+   - Enter the attribute name used in Onfido. 
+   - Select the corresponding Identity Server Claim URI. 
+   - Click **Add Attribute Mapping** and then **Update**.
+9. After completing the configuration and attribute mapping, your Onfido connector will be ready for use with WSO2 
+Identity Server. You can now integrate Onfido's identity verification process into your applications.
+
+> **Note :**
+> 
+> In WSO2 Identity Server 7.0, the steps differ slightly. To create a new Identity Verification Provider:
+> 1. Log in to the WSO2 Identity Server console using your admin credentials.
+> 2. Navigate to Identity Verification Providers in the left-hand menu.
+> 3. Click + New Identity Verification Provider.
+> 4. Follow steps 4-9 as listed above to complete the setup process.
 
 ### Integrating Onfido Identity Verification into Your Application
 
-To integrate Onfido's identity verification into your application, use the Identity Verification User APIs provided 
-by WSO2. You can find the API documentation [here](https://github.com/wso2/identity-api-user/blob/master/components/org.wso2.carbon.identity.api.user.idv/org.wso2.carbon.identity.api.user.idv.v1/src/main/resources/idv.yaml).
+To integrate Onfido's identity verification into your application use the [Onfido SDK](https://documentation.onfido.com/sdk/). 
+The Onfido SDK guides users through the verification process, including capturing and uploading documents or 
+photos for biometric checks. The actual verification can then be handled by Identity Server's 
+[Identity Verification User APIs](https://github.com/wso2/identity-api-user/blob/master/components/org.wso2.carbon.identity.api.user.idv/org.wso2.carbon.identity.api.user.idv.v1/src/main/resources/idv.yaml).
+
 For a practical example, refer to the [Onfido Sample App - Configuration Guidelines](samples/react-sample-app/README.md).
 
-### Core Steps:
+Follow the steps below to integrate Onfido Identity Verification into your external application:
 
-1. **Import Onfido SDK:**
-   - Add the [onfido-sdk-ui](https://github.com/onfido/onfido-sdk-ui) to your project.
+1. **Integrate Onfido SDK:**
+   - Add the Onfido SDK into your external application project. For detailed instructions, refer to the
+     [Onfido SDK documentation](https://documentation.onfido.com/sdk/).
 
 2. **Initiate Verification with Onfido:**
-   - Make a POST request to the `<Base URL>/api/users/v1/me/idv/verify` endpoint with the following properties in the 
-   API request body:
+   - To initiate verification with Onfido, make a POST request to the `<Base URL>/api/users/v1/me/idv/verify` 
+   endpoint with the following payload.
 
      ```json
      {
          "idVProviderId": "<Onfido identity verification provider's ID>",
-         "claims": "<List of WSO2 claims that require verification>",
+         "claims": [
+              "http://wso2.org/claims/givenname",
+              "http://wso2.org/claims/lastname"
+         ],
          "properties": [
              {
                  "key": "status",
@@ -111,7 +133,31 @@ For a practical example, refer to the [Onfido Sample App - Configuration Guideli
              }
          ]
      }
-   - **Note:** Ensure that the claims for both first name and last name are included in the claims list. These are mandatory.
+     ```
+   - **Note:**
+      - The `idVProviderId` can be found in the Setup Guide page of the created Onfido connector.
+      - It is mandatory to include the Claim URIs for first name and last name. Make sure to add any other claims that
+        were configured with the Onfido connector for verification.
+     
+   - The response may look similar to the following:
+     ```json
+     {
+       "idVProviderId": "<Onfido identity verification provider's ID>",
+       "claims": [
+          {
+             "id": "<ID>",
+             "uri": "<WSO2 Claim URI>",
+             "isVerified": false,
+             "claimMetadata": {
+                "onfido_applicant_id": "<Onfido applicant ID>",
+                "onfido_workflow_run_id": "<Onfido workflow run ID>",
+                "sdk_token": "<Onfido SDK token>",
+                "onfido_workflow_status": "awaiting_input"
+             }
+          }
+        ]
+     }
+     ```
 
 3. **Launch the Onfido SDK:**
 
@@ -126,7 +172,10 @@ For a practical example, refer to the [Onfido Sample App - Configuration Guideli
       ```json
       {
           "idVProviderId": "<Onfido identity verification provider's ID>",
-          "claims": "<List of WSO2 claims that require verification>",
+          "claims": [
+              "http://wso2.org/claims/givenname",
+              "http://wso2.org/claims/lastname"
+          ],
           "properties": [
               {
                   "key": "status",
@@ -134,8 +183,8 @@ For a practical example, refer to the [Onfido Sample App - Configuration Guideli
               }
           ]
       }
-   - **Note:** Ensure that the claims for both first name and last name are included in the claims list. These are mandatory.
-
+   - **Note:** It is mandatory to include the Claim URIs for first name and last name. Make sure to add any other claims that
+     were configured with the Onfido connector for verification.
 
 5. **Optional: Reinitiate the Verification Process**
 
@@ -150,7 +199,10 @@ For a practical example, refer to the [Onfido Sample App - Configuration Guideli
      ```json
      {
          "idVProviderId": "<Onfido identity verification provider's ID>",
-         "claims": "<List of WSO2 claims that require verification>",
+         "claims": [
+              "http://wso2.org/claims/givenname",
+              "http://wso2.org/claims/lastname"
+          ],
          "properties": [
              {
                  "key": "status",
@@ -160,8 +212,10 @@ For a practical example, refer to the [Onfido Sample App - Configuration Guideli
      }
      ```
 
-   - After reinitiating the verification process, follow Step 3 to relaunch the Onfido SDK using the new `sdk_token`, and then proceed to Step 4 to complete the verification process.
-   - **Note:** Ensure that the claims for both first name and last name are included in the claims list. These are mandatory.
+   - After reinitiating the verification process, follow Step 3 to relaunch the Onfido SDK using the new `sdk_token`, 
+   and then proceed to Step 4 to complete the verification process.
+   - **Note:** It is mandatory to include the Claim URIs for first name and last name. Make sure to add any other claims that
+     were configured with the Onfido connector for verification.
 
 
 ### Configuring Onfido Webhooks
@@ -173,9 +227,11 @@ To integrate Onfido webhooks with WSO2 Identity Server, use the provided Open AP
 
 `<Base URL>/idv/onfido/v1/<idvp_id>/verify`
 
-You can find this URL in the console under the settings tab corresponding to the Onfido IDVP you created. 
-By configuring this endpoint, WSO2 Identity Server will automatically update the verification status of users based on the notifications received from Onfido.
+You can find this URL in the console under the **Settings** tab corresponding to the Onfido connector you created. 
+By configuring this endpoint, WSO2 Identity Server will automatically update the verification status of users based on 
+the notifications received from Onfido.
 
 **Note:** 
 - Webhook configuration is mandatory, as the verification status of the user claims won't be updated unless it is configured.
-- Additionally, ensure that the workflow is configured to output the data comparison breakdown results. For more details, refer to the [Onfido Workflow Setup Guide](onfido-setup-guide.md).
+- Additionally, ensure that the workflow is configured to output the data comparison breakdown results. 
+For more details, refer to the [Onfido Workflow Setup Guide](onfido-setup-guide.md).
