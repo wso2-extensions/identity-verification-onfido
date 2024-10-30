@@ -23,5 +23,5 @@ go to [IDV with Onfido - Configuration Guidelines](docs/config.md).
 Once you have completed your configurations, you can verify your users using OnFido.
 
 ## Technical workflow
-To understand the underlying flow of the HYPR authenticator, see the
+To understand the underlying flow of the Onfido Connector, see the
 [Technical workflow of Onfido Identity Verification Provider](docs/technical-workflow.md)
