@@ -7,5 +7,5 @@
   "category": "DEFAULT",
   "displayOrder": 1,
   "type": "identity-verification-provider",
-  "image": "https://raw.githubusercontent.com/wso2-extensions/identity-verification-onfido/main/ui-metadata/images/onfido-icon.png"
+  "image": "assets/images/logos/onfido.svg"
 }
