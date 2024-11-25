@@ -3,7 +3,7 @@
     "type": "ONFIDO",
     "name": "Onfido",
     "description": "Enable identity verification through Onfido.",
-    "image": "https://raw.githubusercontent.com/wso2-extensions/identity-verification-onfido/main/ui-metadata/images/onfido-icon.png",
+    "image": "assets/images/logos/onfido.svg",
     "isEnabled": true,
     "claims": [
       {
