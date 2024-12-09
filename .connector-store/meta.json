@@ -1,0 +1,17 @@
+{
+  "name": "Onfido Identity Verification",
+  "owner": "WSO2",
+  "category": "Identity Verification",
+  "documentationUrl": "https://github.com/wso2-extensions/identity-verification-onfido/blob/main/docs/config.md",
+  "description": "The Onfido connector simplifies identity verification by utilizing AI-driven document checks and facial biometrics. It provides seamless and secure verification of user identities using passports, driver’s licenses, and national IDs. By enhancing security and reducing manual verification efforts, it enables businesses to efficiently comply with regulatory requirements.",
+  "status": "Active",
+  "labels": [],
+  "releases": [
+    {
+      "tagName": "1.0.0",
+      "products": [
+        "IS 7.0.0"
+      ]
+    }
+  ]
+}
