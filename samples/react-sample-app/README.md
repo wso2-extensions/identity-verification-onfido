@@ -68,7 +68,7 @@ The application will open at [`https://localhost:3000`](https://localhost:3000).
 If you need to run the development server on a different port, follow these steps:
 
 1. Update the `PORT` in the `.env` file located at the root of the application.
-2. Update the `signInRedirectURL` and `signOutRedirectURL` in the `src/runtime-config.json` file.
+2. Update the `signInRedirectURL` and `signOutRedirectURL` in the `public/runtime-config.json` file.
 3. Go to the Identity Server/Asgardeo Console and navigate to the **Protocol** tab of your application:
     - Update the **Authorized Redirect URL**.
     - Update the **Allowed Origins**.
