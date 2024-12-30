@@ -162,7 +162,8 @@ public class OnfidoConstants {
                 "found for claim: %s of user: %s."),
         ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL("10036", "The Onfido data " +
                 "comparison result returned null for claim: %s of user: %s. This could be due to Comparison Checks " +
-                "not being enabled for your account.");
+                "not being enabled for your account."),
+        ERROR_CLAIM_MAPPING_NOT_FOUND("10037", "No Onfido claim mapping found for the claim URI: %s.");
 
         private final String code;
         private final String message;
