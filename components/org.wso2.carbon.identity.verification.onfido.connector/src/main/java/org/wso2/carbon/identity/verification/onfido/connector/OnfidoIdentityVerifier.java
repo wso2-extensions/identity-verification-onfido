@@ -53,6 +53,7 @@ import static org.wso2.carbon.extension.identity.verification.mgt.utils.Identity
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICANT_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_APPLICANT_ID_NOT_FOUND;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CLAIM_MAPPING_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CLAIM_VALUE_NOT_EXIST;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
@@ -537,6 +538,10 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
                     if (StringUtils.isEmpty(claimValue)) {
                         throw new IdentityVerificationClientException(ERROR_CLAIM_VALUE_NOT_EXIST.getCode(),
                                 String.format(ERROR_CLAIM_VALUE_NOT_EXIST.getMessage(), claimUri));
+                    }
+                    if (!idVClaimMap.containsKey(claimUri)) {
+                        throw new IdentityVerificationClientException(ERROR_CLAIM_MAPPING_NOT_FOUND.getCode(),
+                                String.format(ERROR_CLAIM_MAPPING_NOT_FOUND.getMessage(), claimUri));
                     }
                     idVProviderClaimWithValueMap.put(idVClaimMap.get(claimUri), claimValue);
                 }
