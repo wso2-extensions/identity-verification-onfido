@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,7 +34,6 @@ import org.wso2.carbon.extension.identity.verification.provider.IdVProviderManag
 import org.wso2.carbon.extension.identity.verification.provider.exception.IdVProviderMgtException;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVConfigProperty;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVProvider;
-import org.wso2.carbon.identity.verification.onfido.api.common.OnfidoIdvServiceHolder;
 import org.wso2.carbon.identity.verification.onfido.api.common.Util;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.APIError;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorDTO;
@@ -54,7 +53,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -144,14 +142,12 @@ public class OnfidoIdvServiceTest {
             "\"properties\":{}}}}}}}";
 
     private static MockedStatic<Util> mockedUtil;
-    private static MockedStatic<OnfidoIdvServiceHolder> mockedHolder;
     private static MockedStatic<RawRequestBodyInterceptor> mockedInterceptor;
 
     @BeforeClass
     public static void setUpClass() {
 
         mockedUtil = mockStatic(Util.class);
-        mockedHolder = mockStatic(OnfidoIdvServiceHolder.class);
         mockedInterceptor = mockStatic(RawRequestBodyInterceptor.class);
     }
 
@@ -159,7 +155,6 @@ public class OnfidoIdvServiceTest {
     public static void tearDownClass() {
 
         mockedUtil.close();
-        mockedHolder.close();
         mockedInterceptor.close();
     }
 
@@ -172,10 +167,9 @@ public class OnfidoIdvServiceTest {
 
     private void setupMocks() throws Exception {
 
+        onfidoIdvService = new OnfidoIdvService(idVProviderManager, identityVerificationManager);
+
         mockedUtil.when(Util::getTenantId).thenReturn(TEST_TENANT_ID);
-        mockedHolder.when(OnfidoIdvServiceHolder::getIdVProviderManager).thenReturn(idVProviderManager);
-        mockedHolder.when(OnfidoIdvServiceHolder::getIdentityVerificationManager)
-                .thenReturn(identityVerificationManager);
         mockedInterceptor.when(RawRequestBodyInterceptor::getRawRequestBody).thenReturn(RAW_REQUEST_BODY);
 
         when(idVProviderManager.getIdVProvider(eq(TEST_IDVP_ID), eq(TEST_TENANT_ID))).thenReturn(idVProvider);
@@ -288,8 +282,6 @@ public class OnfidoIdvServiceTest {
     @Test(dataProvider = "invalidResourceTypeAndActionDataProvider")
     public void testInvalidResourceTypeAndAction(String resourceType, String action) {
 
-        OnfidoIdvService service = new OnfidoIdvService();
-
         VerifyRequest verifyRequest = new VerifyRequest();
         VerifyRequestPayload payload = new VerifyRequestPayload();
         payload.setResourceType(resourceType);
@@ -297,7 +289,7 @@ public class OnfidoIdvServiceTest {
         verifyRequest.setPayload(payload);
 
         try {
-            service.verify(TEST_VALID_SIGNATURE, TEST_IDVP_ID, verifyRequest);
+            onfidoIdvService.verify(TEST_VALID_SIGNATURE, TEST_IDVP_ID, verifyRequest);
             fail("Should have thrown an APIError for invalid resource type or action");
         } catch (APIError e) {
             assertEquals(e.getStatus().getStatusCode(), Response.Status.BAD_REQUEST.getStatusCode());
@@ -311,9 +303,7 @@ public class OnfidoIdvServiceTest {
     @Test
     public void testInvalidGetIdVProvider() throws IdVProviderMgtException {
 
-        IdVProviderManager mockIdVProviderManager = mock(IdVProviderManager.class);
-        mockedHolder.when(OnfidoIdvServiceHolder::getIdVProviderManager).thenReturn(mockIdVProviderManager);
-        when(mockIdVProviderManager.getIdVProvider(anyString(), anyInt())).thenReturn(null);
+        when(idVProviderManager.getIdVProvider(anyString(), anyInt())).thenReturn(null);
 
         VerifyRequest verifyRequest = createVerifyRequest(OnfidoConstants.WorkflowRunStatus.APPROVED);
 

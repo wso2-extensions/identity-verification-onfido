@@ -42,16 +42,6 @@
                 <version>${cxf-bundle.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring-web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring-web.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>
                 <version>${javax.ws.rs-api.version}</version>
@@ -121,11 +111,6 @@
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs</artifactId>
                 <version>${javax.ws.rs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ops4j.pax.logging</groupId>
-                <artifactId>pax-logging-log4j2</artifactId>
-                <version>${pax.logging.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -459,7 +444,6 @@
         <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <apache.common.collections4.version>4.1</apache.common.collections4.version>
-        <pax.logging.version>1.10.1</pax.logging.version>
         <org.json.version>20230227</org.json.version>
         <org.osgi.version>7.0.0</org.osgi.version>
         <org.apache.httpcomponents.version>4.5.13</org.apache.httpcomponents.version>
@@ -482,7 +466,6 @@
         <jackson-jaxrs-json-provider.version>2.13.2</jackson-jaxrs-json-provider.version>
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
         <jackson-dataformat-xml.version>2.13.2</jackson-dataformat-xml.version>
-        <spring-web.version>5.3.25</spring-web.version>
         <swagger-jaxrs.version>1.6.2</swagger-jaxrs.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
 

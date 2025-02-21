@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.v1;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import java.io.InputStream;
@@ -27,6 +26,7 @@ import java.util.List;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.Error;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequest;
 import org.wso2.carbon.identity.verification.onfido.api.v1.DefaultApiService;
+import org.wso2.carbon.identity.verification.onfido.api.v1.factories.DefaultApiServiceFactory;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -40,8 +40,12 @@ import javax.validation.constraints.*;
 
 public class DefaultApi  {
 
-    @Autowired
-    private DefaultApiService delegate;
+    private final DefaultApiService delegate;
+
+    public DefaultApi() {
+
+        delegate = DefaultApiServiceFactory.getDefaultApi();
+    }
 
     @Valid
     @POST

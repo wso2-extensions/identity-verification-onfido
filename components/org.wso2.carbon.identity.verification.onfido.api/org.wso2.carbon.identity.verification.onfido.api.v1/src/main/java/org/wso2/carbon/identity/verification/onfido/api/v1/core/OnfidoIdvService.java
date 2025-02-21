@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,14 +22,15 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.extension.identity.verification.mgt.IdentityVerificationManager;
 import org.wso2.carbon.extension.identity.verification.mgt.exception.IdentityVerificationException;
 import org.wso2.carbon.extension.identity.verification.mgt.model.IdVClaim;
+import org.wso2.carbon.extension.identity.verification.provider.IdVProviderManager;
 import org.wso2.carbon.extension.identity.verification.provider.exception.IdVProviderMgtException;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVConfigProperty;
 import org.wso2.carbon.extension.identity.verification.provider.model.IdVProvider;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.verification.onfido.api.common.Constants;
-import org.wso2.carbon.identity.verification.onfido.api.common.OnfidoIdvServiceHolder;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.APIError;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
 import org.wso2.carbon.identity.verification.onfido.api.v1.interceptors.RawRequestBodyInterceptor;
@@ -100,6 +101,16 @@ public class OnfidoIdvService {
 
     private static final Log log = LogFactory.getLog(OnfidoIdvService.class);
 
+    private final IdVProviderManager idvProviderManager;
+    private final IdentityVerificationManager identityVerificationManager;
+
+    public OnfidoIdvService(IdVProviderManager idvProviderManager,
+                            IdentityVerificationManager identityVerificationManager) {
+
+        this.idvProviderManager = idvProviderManager;
+        this.identityVerificationManager = identityVerificationManager;
+    }
+
     /**
      * Handles the Onfido webhook verification status update.
      * This method is invoked when Onfido sends a verification status update via webhook.
@@ -145,7 +156,7 @@ public class OnfidoIdvService {
             OnfidoServerException {
 
         try {
-            IdVProvider idVProvider = OnfidoIdvServiceHolder.getIdVProviderManager().getIdVProvider(idvpId, tenantId);
+            IdVProvider idVProvider = idvProviderManager.getIdVProvider(idvpId, tenantId);
             if (idVProvider == null || !idVProvider.isEnabled()) {
                 throw new OnfidoClientException(ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getCode(),
                         ERROR_IDV_PROVIDER_INVALID_OR_DISABLED.getMessage());
@@ -349,8 +360,9 @@ public class OnfidoIdvService {
     private IdVClaim[] getIdVClaimsByWorkflowRunId(String workflowRunId, String idvpId, int tenantId)
             throws OnfidoClientException, IdentityVerificationException {
 
-        IdVClaim[] idVClaims = OnfidoIdvServiceHolder.getIdentityVerificationManager()
-                .getIdVClaimsByMetadata(ONFIDO_WORKFLOW_RUN_ID, workflowRunId, idvpId, tenantId);
+        IdVClaim[] idVClaims =
+                identityVerificationManager.getIdVClaimsByMetadata(ONFIDO_WORKFLOW_RUN_ID, workflowRunId, idvpId,
+                        tenantId);
         if (idVClaims == null || idVClaims.length == 0) {
             throw new OnfidoClientException(ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getCode(),
                     ERROR_RETRIEVING_CLAIMS_AGAINST_WORKFLOW_RUN_ID.getMessage());
@@ -504,8 +516,7 @@ public class OnfidoIdvService {
     private void persistUpdatedClaims(IdVClaim[] idVClaims, int tenantId) throws IdentityVerificationException {
 
         for (IdVClaim idVClaim : idVClaims) {
-            OnfidoIdvServiceHolder.getIdentityVerificationManager()
-                    .updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
+            identityVerificationManager.updateIdVClaim(idVClaim.getUserId(), idVClaim, tenantId);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Successfully updated claim verification status of the user: %s, claim: %s.",
                         idVClaim.getUserId(), idVClaim.getClaimUri()));
