@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.common;
 
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.extension.identity.verification.mgt.IdentityVerificationManager;
 import org.wso2.carbon.extension.identity.verification.provider.IdVProviderManager;
 
@@ -26,8 +27,19 @@ import org.wso2.carbon.extension.identity.verification.provider.IdVProviderManag
  */
 public class OnfidoIdvServiceHolder {
 
-    private static IdVProviderManager idVProviderManager;
-    private static IdentityVerificationManager identityVerificationManager;
+    private OnfidoIdvServiceHolder() {};
+
+    private static class IdVProviderManagerHolder {
+
+        static final IdVProviderManager SERVICE = (IdVProviderManager) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(IdVProviderManager.class, null);
+    }
+
+    private static class IdentityVerificationManagerHolder {
+
+        static final IdentityVerificationManager SERVICE = (IdentityVerificationManager) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(IdentityVerificationManager.class, null);
+    }
 
     /**
      * Get IdVProviderManager osgi service.
@@ -36,27 +48,7 @@ public class OnfidoIdvServiceHolder {
      */
     public static IdVProviderManager getIdVProviderManager() {
 
-        return idVProviderManager;
-    }
-
-    /**
-     * Set IdVProviderManager osgi service.
-     *
-     * @param idVProviderManager IdVProviderManager.
-     */
-    public static void setIdVProviderManager(IdVProviderManager idVProviderManager) {
-
-        OnfidoIdvServiceHolder.idVProviderManager = idVProviderManager;
-    }
-
-    /**
-     * Set IdentityVerificationManager osgi service.
-     *
-     * @param identityVerificationManager IdentityVerificationManager.
-     */
-    public static void setIdentityVerificationManager(IdentityVerificationManager identityVerificationManager) {
-
-        OnfidoIdvServiceHolder.identityVerificationManager = identityVerificationManager;
+        return IdVProviderManagerHolder.SERVICE;
     }
 
     /**
@@ -66,6 +58,6 @@ public class OnfidoIdvServiceHolder {
      */
     public static IdentityVerificationManager getIdentityVerificationManager() {
 
-        return identityVerificationManager;
+        return IdentityVerificationManagerHolder.SERVICE;
     }
 }

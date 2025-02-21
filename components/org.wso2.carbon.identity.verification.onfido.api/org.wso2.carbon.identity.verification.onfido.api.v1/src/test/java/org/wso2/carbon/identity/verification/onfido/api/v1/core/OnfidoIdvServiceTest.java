@@ -288,7 +288,7 @@ public class OnfidoIdvServiceTest {
     @Test(dataProvider = "invalidResourceTypeAndActionDataProvider")
     public void testInvalidResourceTypeAndAction(String resourceType, String action) {
 
-        OnfidoIdvService service = new OnfidoIdvService();
+        OnfidoIdvService service = new OnfidoIdvService(idVProviderManager, identityVerificationManager);
 
         VerifyRequest verifyRequest = new VerifyRequest();
         VerifyRequestPayload payload = new VerifyRequestPayload();

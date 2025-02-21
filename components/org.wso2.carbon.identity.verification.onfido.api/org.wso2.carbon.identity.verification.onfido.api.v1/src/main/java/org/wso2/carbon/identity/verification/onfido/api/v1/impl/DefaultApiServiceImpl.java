@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.v1.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.wso2.carbon.identity.verification.onfido.api.v1.DefaultApiService;
 import org.wso2.carbon.identity.verification.onfido.api.v1.core.OnfidoIdvService;
+import org.wso2.carbon.identity.verification.onfido.api.v1.factories.OnfidoIdvServiceFactory;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequest;
 
 import javax.ws.rs.core.Response;
@@ -30,8 +30,16 @@ import javax.ws.rs.core.Response;
  */
 public class DefaultApiServiceImpl implements DefaultApiService {
 
-    @Autowired
-    OnfidoIdvService onfidoIdvService;
+    private final OnfidoIdvService onfidoIdvService;
+
+    public DefaultApiServiceImpl() {
+
+        try {
+            this.onfidoIdvService = OnfidoIdvServiceFactory.getOnfidoIdvService();
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("Error occurred while initiating OnfidoIdvService.", e);
+        }
+    }
 
     @Override
     public Response verify(String xSHA2Signature, String idvpId, VerifyRequest verifyRequest) {
