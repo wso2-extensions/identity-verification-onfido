@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,39 +18,69 @@
 
 package org.wso2.carbon.identity.verification.onfido.api.v1.impl;
 
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.internal.OSGiDataHolder;
+import org.wso2.carbon.extension.identity.verification.mgt.IdentityVerificationManager;
+import org.wso2.carbon.extension.identity.verification.provider.IdVProviderManager;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.verification.onfido.api.common.Constants;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.APIError;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorDTO;
 import org.wso2.carbon.identity.verification.onfido.api.common.error.ErrorResponse;
 import org.wso2.carbon.identity.verification.onfido.api.v1.core.OnfidoIdvService;
+import org.wso2.carbon.identity.verification.onfido.api.v1.factories.OnfidoIdvServiceFactory;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequest;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequestPayload;
 import org.wso2.carbon.identity.verification.onfido.api.v1.model.VerifyRequestPayloadObject;
+
+import java.nio.file.Paths;
 
 import javax.ws.rs.core.Response;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+@WithCarbonHome
 public class DefaultApiServiceImplTest {
 
     @Mock
     private OnfidoIdvService onfidoIdvService;
-    @InjectMocks
+    @Mock
+    private IdVProviderManager idVProviderManager;
+    @Mock
+    private IdentityVerificationManager identityVerificationManager;
+    @Mock
+    BundleContext bundleContext;
+    MockedConstruction<ServiceTracker> mockedConstruction;
+
     private DefaultApiServiceImpl defaultApiService;
     private VerifyRequest testVerifyRequest;
+    private MockedStatic<OnfidoIdvServiceFactory> onfidoIdvServiceFactoryMockedStatic;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     private static final String TEST_X_SHA2_SIGNATURE = "test-signature";
     private static final String TEST_IDVP_ID = "test-idvp-id";
@@ -61,17 +91,56 @@ public class DefaultApiServiceImplTest {
     private static final String TEST_COMPLETED_AT = "2024-10-05T09:59:34Z";
     private static final String TEST_HREF = "https://api.eu.onfido.com/v3.6/workflow_runs/test_workflow_run_id";
 
+    @BeforeClass
+    public void setUpClass() {
+
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, Paths.get(System.getProperty("user.dir"),
+                "src", "test", "resources").toString());
+
+    }
+
     @BeforeMethod
     public void setUp() {
 
         MockitoAnnotations.openMocks(this);
         testVerifyRequest = createTestVerifyRequest();
+
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super");
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        mockedConstruction = mockConstruction(ServiceTracker.class,
+                (mock, context) -> {
+                    verify(bundleContext, atLeastOnce()).createFilter(argumentCaptor.capture());
+                    if (argumentCaptor.getValue().contains(IdVProviderManager.class.getName())) {
+                        when(mock.getServices()).thenReturn(new Object[]{idVProviderManager});
+                    }
+                    if (argumentCaptor.getValue().contains(IdentityVerificationManager.class.getName())) {
+                        when(mock.getServices()).thenReturn(new Object[]{identityVerificationManager});
+                    }
+                });
+        OSGiDataHolder.getInstance().setBundleContext(bundleContext);
+
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        onfidoIdvServiceFactoryMockedStatic = mockStatic(OnfidoIdvServiceFactory.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).thenReturn(-1234);
+        onfidoIdvServiceFactoryMockedStatic.when(OnfidoIdvServiceFactory::getOnfidoIdvService)
+                .thenReturn(onfidoIdvService);
+        defaultApiService = new DefaultApiServiceImpl();
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        mockedConstruction.close();
+        identityTenantUtil.close();
+        onfidoIdvServiceFactoryMockedStatic.close();
     }
 
     @Test
     public void testVerifySuccess() {
 
-        doNothing().when(onfidoIdvService).verify(TEST_X_SHA2_SIGNATURE, TEST_IDVP_ID, testVerifyRequest);
+        doNothing().when(onfidoIdvService).verify(any(), any(), any());
 
         Response response = defaultApiService.verify(TEST_X_SHA2_SIGNATURE, TEST_IDVP_ID, testVerifyRequest);
 
@@ -81,23 +150,25 @@ public class DefaultApiServiceImplTest {
 
     @DataProvider(name = "serverErrorDataProvider")
     public Object[][] serverErrorDataProvider() {
-        return new Object[][] {
-            {Constants.ErrorMessage.SERVER_ERROR_GENERAL_ERROR},
-            {Constants.ErrorMessage.SERVER_ERROR_RESOLVING_IDVP},
-            {Constants.ErrorMessage.SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID},
-            {Constants.ErrorMessage.SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE},
-            {Constants.ErrorMessage.SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS},
-            {Constants.ErrorMessage.SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS}
+
+        return new Object[][]{
+                {Constants.ErrorMessage.SERVER_ERROR_GENERAL_ERROR},
+                {Constants.ErrorMessage.SERVER_ERROR_RESOLVING_IDVP},
+                {Constants.ErrorMessage.SERVER_ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_INVALID},
+                {Constants.ErrorMessage.SERVER_ERROR_SIGNATURE_VALIDATION_FAILURE},
+                {Constants.ErrorMessage.SERVER_ERROR_INVALID_WORKFLOW_RUN_STATUS},
+                {Constants.ErrorMessage.SERVER_ERROR_UPDATING_IDV_CLAIM_VERIFICATION_STATUS}
         };
     }
 
     @Test(dataProvider = "serverErrorDataProvider")
     public void testVerifyServerError(Constants.ErrorMessage errorMessage) {
+
         ErrorResponse errorResponse = new ErrorResponse.Builder()
-            .withCode(errorMessage.getCode())
-            .withMessage(errorMessage.getMessage())
-            .withDescription(errorMessage.getDescription())
-            .build();
+                .withCode(errorMessage.getCode())
+                .withMessage(errorMessage.getMessage())
+                .withDescription(errorMessage.getDescription())
+                .build();
 
         APIError apiError = new APIError(Response.Status.INTERNAL_SERVER_ERROR, errorResponse);
 
@@ -122,24 +193,26 @@ public class DefaultApiServiceImplTest {
 
     @DataProvider(name = "clientErrorDataProvider")
     public Object[][] clientErrorDataProvider() {
-        return new Object[][] {
-            {Constants.ErrorMessage.CLIENT_ERROR_SIGNATURE_MISMATCH, Response.Status.UNAUTHORIZED},
-            {Constants.ErrorMessage.CLIENT_ERROR_RESOLVING_IDVP, Response.Status.NOT_FOUND},
-            {Constants.ErrorMessage.CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION, Response.Status.BAD_REQUEST},
-            {Constants.ErrorMessage.CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT, Response.Status.BAD_REQUEST},
-            {Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NOT_FOUND, Response.Status.BAD_REQUEST},
-            {Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NULL, Response.Status.BAD_REQUEST},
-            {Constants.ErrorMessage.CLIENT_ERROR_INVALID_REQUEST, Response.Status.BAD_REQUEST}
+
+        return new Object[][]{
+                {Constants.ErrorMessage.CLIENT_ERROR_SIGNATURE_MISMATCH, Response.Status.UNAUTHORIZED},
+                {Constants.ErrorMessage.CLIENT_ERROR_RESOLVING_IDVP, Response.Status.NOT_FOUND},
+                {Constants.ErrorMessage.CLIENT_ERROR_UNSUPPORTED_RESOURCE_TYPE_OR_ACTION, Response.Status.BAD_REQUEST},
+                {Constants.ErrorMessage.CLIENT_ERROR_INVALID_WORKFLOW_OUTPUT, Response.Status.BAD_REQUEST},
+                {Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NOT_FOUND, Response.Status.BAD_REQUEST},
+                {Constants.ErrorMessage.CLIENT_ERROR_DATA_COMPARISON_RESULT_NULL, Response.Status.BAD_REQUEST},
+                {Constants.ErrorMessage.CLIENT_ERROR_INVALID_REQUEST, Response.Status.BAD_REQUEST}
         };
     }
 
     @Test(dataProvider = "clientErrorDataProvider")
     public void testVerifyClientError(Constants.ErrorMessage errorMessage, Response.Status expectedStatus) {
+
         ErrorResponse errorResponse = new ErrorResponse.Builder()
-            .withCode(errorMessage.getCode())
-            .withMessage(errorMessage.getMessage())
-            .withDescription(errorMessage.getDescription())
-            .build();
+                .withCode(errorMessage.getCode())
+                .withMessage(errorMessage.getMessage())
+                .withDescription(errorMessage.getDescription())
+                .build();
 
         APIError apiError = new APIError(expectedStatus, errorResponse);
 
@@ -154,7 +227,7 @@ public class DefaultApiServiceImplTest {
 
         assertNotNull(receivedApiError, "APIError should be thrown");
         assertEquals(expectedStatus.getStatusCode(), receivedApiError.getStatus().getStatusCode(),
-                     "Response status should match the expected status");
+                "Response status should match the expected status");
         ErrorDTO errorDTO = receivedApiError.getResponseEntity();
         assertEquals(errorMessage.getCode(), errorDTO.getCode());
         assertEquals(errorMessage.getMessage(), errorDTO.getMessage());

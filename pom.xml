@@ -113,11 +113,6 @@
                 <version>${javax.ws.rs.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ops4j.pax.logging</groupId>
-                <artifactId>pax-logging-log4j2</artifactId>
-                <version>${pax.logging.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -449,7 +444,6 @@
         <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <apache.common.collections4.version>4.1</apache.common.collections4.version>
-        <pax.logging.version>1.10.1</pax.logging.version>
         <org.json.version>20230227</org.json.version>
         <org.osgi.version>7.0.0</org.osgi.version>
         <org.apache.httpcomponents.version>4.5.13</org.apache.httpcomponents.version>
