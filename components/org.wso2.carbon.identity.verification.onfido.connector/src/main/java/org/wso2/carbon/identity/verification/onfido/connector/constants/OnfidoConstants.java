@@ -163,7 +163,14 @@ public class OnfidoConstants {
         ERROR_DATA_COMPARISON_BREAKDOWN_CLAIM_VERIFICATION_RESULT_NULL("10036", "The Onfido data " +
                 "comparison result returned null for claim: %s of user: %s. This could be due to Comparison Checks " +
                 "not being enabled for your account."),
-        ERROR_CLAIM_MAPPING_NOT_FOUND("10037", "No Onfido claim mapping found for the claim URI: %s.");
+        ERROR_CLAIM_MAPPING_NOT_FOUND("10037", "No Onfido claim mapping found for the claim URI: %s."),
+        ERROR_INVALID_TOKEN("10038", "Invalid or expired Onfido token provided."),
+        ERROR_INVALID_BASE_URL("10039", "Invalid Onfido base URL provided."),
+        ERROR_APPLICANT_ID_NOT_FOUND_IN_ONFIDO("10040",
+                "No Onfido user found associated with the provided applicant ID: %s."),
+        ERROR_WORKFLOW_RUN_ID_NOT_FOUND_IN_ONFIDO("10041",
+                "No Onfido workflow run found for the provided workflow run ID: %s."),
+        ERROR_INVALID_WORKFLOW_ID("10042", "Invalid Onfido workflow ID : %s provided.");
 
         private final String code;
         private final String message;

@@ -28,18 +28,23 @@ import org.json.JSONObject;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoClientException;
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_TOKEN;
 
 public class OnfidoAPIClientTest {
 
@@ -209,7 +214,9 @@ public class OnfidoAPIClientTest {
         JSONObject idvClaimsWithValues = createTestIdvClaimsWithValues();
 
         testErrorResponse(() -> OnfidoAPIClient.createApplicant(idVConfigPropertyMap, idvClaimsWithValues),
-                ErrorMessage.ERROR_CREATING_ONFIDO_APPLICANT);
+                statusCode -> {
+                    return ErrorMessage.ERROR_CREATING_ONFIDO_APPLICANT;
+                }, null);
     }
 
     @Test
@@ -218,7 +225,15 @@ public class OnfidoAPIClientTest {
         JSONObject workflowRunRequestBody = createTestWorkflowRunRequestBody();
 
         testErrorResponse(() -> OnfidoAPIClient.createWorkflowRun(idVConfigPropertyMap, workflowRunRequestBody),
-                ErrorMessage.ERROR_CREATING_WORKFLOW_RUN);
+                statusCode -> {
+                    return ErrorMessage.ERROR_CREATING_WORKFLOW_RUN;
+                },
+                statusCode -> {
+                    if (statusCode == HttpStatus.SC_UNPROCESSABLE_ENTITY) {
+                        return ErrorMessage.ERROR_INVALID_WORKFLOW_ID;
+                    }
+                    return null;
+                });
     }
 
     @Test
@@ -227,7 +242,9 @@ public class OnfidoAPIClientTest {
         JSONObject sdkTokenRequestBody = createTestSdkTokenRequestBody();
 
         testErrorResponse(() -> OnfidoAPIClient.createSDKToken(idVConfigPropertyMap, sdkTokenRequestBody),
-                ErrorMessage.ERROR_GETTING_ONFIDO_SDK_TOKEN);
+                statusCode -> {
+                    return ErrorMessage.ERROR_GETTING_ONFIDO_SDK_TOKEN;
+                }, null);
     }
 
     @Test
@@ -237,17 +254,28 @@ public class OnfidoAPIClientTest {
 
         testErrorResponse(
                 () -> OnfidoAPIClient.updateApplicant(idVConfigPropertyMap, idvClaimsWithValues, TEST_APPLICANT_ID),
-                ErrorMessage.ERROR_UPDATING_ONFIDO_APPLICANT);
+                statusCode -> {
+                    if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                        return ErrorMessage.ERROR_APPLICANT_ID_NOT_FOUND_IN_ONFIDO;
+                    }
+                    return ErrorMessage.ERROR_UPDATING_ONFIDO_APPLICANT;
+                }, null);
     }
 
     @Test
     public void testGetWorkflowRunStatusWithErrorResponse() throws Exception {
 
         testErrorResponse(() -> OnfidoAPIClient.getWorkflowRunStatus(idVConfigPropertyMap, TEST_WORKFLOW_RUN_ID),
-                ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS);
+                statusCode -> {
+                    if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                        return ErrorMessage.ERROR_WORKFLOW_RUN_ID_NOT_FOUND_IN_ONFIDO;
+                    }
+                    return ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS;
+                }, null);
     }
 
-    private void testErrorResponse(Callable<JSONObject> apiCall, ErrorMessage expectedError) throws Exception {
+    private void testErrorResponse(Callable<JSONObject> apiCall, Function<Integer, ErrorMessage> serverErrorMapper,
+                                   Function<Integer, ErrorMessage> clientErrorMapper) throws Exception {
 
         for (int statusCode : ERROR_STATUS_CODES) {
             try (MockedStatic<OnfidoWebUtils> mockedOnfidoWebUtils = mockStatic(OnfidoWebUtils.class)) {
@@ -256,12 +284,30 @@ public class OnfidoAPIClientTest {
                 mockedOnfidoWebUtils.when(() -> OnfidoWebUtils.httpPut(any(), any(), any())).thenReturn(response);
                 mockedOnfidoWebUtils.when(() -> OnfidoWebUtils.httpGet(any(), any())).thenReturn(response);
 
-                assertThrows(OnfidoServerException.class, apiCall::call);
+                assertThrows(OnfidoException.class, apiCall::call);
+
                 try {
                     apiCall.call();
                 } catch (OnfidoServerException e) {
-                    assertEquals(e.getErrorCode(), expectedError.getCode());
-                    assertEquals(e.getMessage(), String.format(expectedError.getMessage(), statusCode));
+                    ErrorMessage serverError = serverErrorMapper.apply(statusCode);
+                    if (serverError != null) {
+                        assertEquals(e.getErrorCode(), serverError.getCode());
+                    }
+                } catch (OnfidoClientException e) {
+                    if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                        assertEquals(e.getErrorCode(), ERROR_INVALID_TOKEN.getCode());
+                        continue;
+                    }
+                    if (clientErrorMapper != null) {
+                        ErrorMessage clientError = clientErrorMapper.apply(statusCode);
+                        if (clientError != null) {
+                            assertEquals(e.getErrorCode(), clientError.getCode());
+                        } else {
+                            fail("Client error mapper should not return null for status code: " + statusCode);
+                        }
+                    } else {
+                        fail("Client error mapper should not be null.");
+                    }
                 }
             }
         }
