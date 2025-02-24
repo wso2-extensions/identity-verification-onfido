@@ -29,13 +29,15 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHttpResponse;
-import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoException;
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoClientException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICATION_JSON;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDENTITY_VERIFICATION;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN_HEADER;
 
 /**
@@ -58,7 +60,7 @@ public class OnfidoWebUtils {
      *                               HTTP client connection.
      */
     public static HttpResponse httpPost(String apiToken, String requestURL, String requestBody)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         HttpPost request = new HttpPost(requestURL);
         request.addHeader(HttpHeaders.AUTHORIZATION, TOKEN_HEADER + apiToken);
@@ -68,6 +70,9 @@ public class OnfidoWebUtils {
         CloseableHttpClient client = HTTPClientManager.getInstance().getHttpClient();
         try (CloseableHttpResponse response = client.execute(request)) {
             return toHttpResponse(response);
+        } catch (UnknownHostException e) {
+            throw new OnfidoClientException(ERROR_INVALID_BASE_URL.getCode(),
+                    ERROR_INVALID_BASE_URL.getMessage(), e);
         } catch (IOException e) {
             throw new OnfidoServerException(ERROR_IDENTITY_VERIFICATION.getCode(),
                     ERROR_IDENTITY_VERIFICATION.getMessage(), e);
@@ -85,23 +90,20 @@ public class OnfidoWebUtils {
      *                               client connection.
      */
     public static HttpResponse httpPut(String apiToken, String requestURL, String requestBody)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         HttpPut request = new HttpPut(requestURL);
         request.addHeader(HttpHeaders.AUTHORIZATION, TOKEN_HEADER + apiToken);
         request.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         request.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
 
-        CloseableHttpClient client;
-        try {
-            client = HTTPClientManager.getInstance().getHttpClient();
-            try (CloseableHttpResponse response = client.execute(request)) {
-                return toHttpResponse(response);
-            } catch (IOException e) {
-                throw new OnfidoServerException(ERROR_IDENTITY_VERIFICATION.getCode(),
-                        ERROR_IDENTITY_VERIFICATION.getMessage(), e);
-            }
-        } catch (OnfidoException e) {
+        CloseableHttpClient client = HTTPClientManager.getInstance().getHttpClient();
+        try (CloseableHttpResponse response = client.execute(request)) {
+            return toHttpResponse(response);
+        } catch (UnknownHostException e) {
+            throw new OnfidoClientException(ERROR_INVALID_BASE_URL.getCode(),
+                    ERROR_INVALID_BASE_URL.getMessage(), e);
+        } catch (IOException e) {
             throw new OnfidoServerException(ERROR_IDENTITY_VERIFICATION.getCode(),
                     ERROR_IDENTITY_VERIFICATION.getMessage(), e);
         }
@@ -117,22 +119,19 @@ public class OnfidoWebUtils {
      *                               client connection.
      */
     public static HttpResponse httpGet(String apiToken, String requestURL)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         HttpGet request = new HttpGet(requestURL);
         request.addHeader(HttpHeaders.AUTHORIZATION, TOKEN_HEADER + apiToken);
         request.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
 
-        CloseableHttpClient client;
-        try {
-            client = HTTPClientManager.getInstance().getHttpClient();
-            try (CloseableHttpResponse response = client.execute(request)) {
-                return toHttpResponse(response);
-            } catch (IOException e) {
-                throw new OnfidoServerException(ERROR_IDENTITY_VERIFICATION.getCode(),
-                        ERROR_IDENTITY_VERIFICATION.getMessage(), e);
-            }
-        } catch (OnfidoException e) {
+        CloseableHttpClient client = HTTPClientManager.getInstance().getHttpClient();
+        try (CloseableHttpResponse response = client.execute(request)) {
+            return toHttpResponse(response);
+        } catch (UnknownHostException e) {
+            throw new OnfidoClientException(ERROR_INVALID_BASE_URL.getCode(),
+                    ERROR_INVALID_BASE_URL.getMessage(), e);
+        } catch (IOException e) {
             throw new OnfidoServerException(ERROR_IDENTITY_VERIFICATION.getCode(),
                     ERROR_IDENTITY_VERIFICATION.getMessage(), e);
         }

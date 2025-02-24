@@ -59,7 +59,10 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_CONFIG_PROPERTIES_EMPTY;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_IDV_PROVIDER_INVALID_OR_DISABLED;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INITIATING_ONFIDO_VERIFICATION;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_BASE_URL;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_ONFIDO_VERIFICATION_FLOW_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_ONFIDO_WORKFLOW_RUN_ID_NOT_FOUND;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATING_ONFIDO_VERIFICATION;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_REINITIATION_NOT_ALLOWED;
@@ -184,6 +187,17 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
         } catch (OnfidoServerException e) {
             throw new IdentityVerificationServerException(ERROR_INITIATING_ONFIDO_VERIFICATION.getCode(),
                     String.format(ERROR_INITIATING_ONFIDO_VERIFICATION.getMessage(), userId), e);
+        } catch (OnfidoClientException e) {
+            if (ERROR_INVALID_TOKEN.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_TOKEN.getCode(),
+                        ERROR_INVALID_TOKEN.getMessage());
+            } else if (ERROR_INVALID_BASE_URL.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_BASE_URL.getCode(),
+                        ERROR_INVALID_BASE_URL.getMessage());
+            } else if (ERROR_INVALID_WORKFLOW_ID.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_WORKFLOW_ID.getCode(),
+                        ERROR_INVALID_WORKFLOW_ID.getMessage());
+            }
         }
         return verificationRequiredClaims;
     }
@@ -271,6 +285,14 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
         } catch (OnfidoServerException e) {
             throw new IdentityVerificationServerException(ERROR_REINITIATING_ONFIDO_VERIFICATION.getCode(),
                     ERROR_REINITIATING_ONFIDO_VERIFICATION.getMessage(), e);
+        } catch (OnfidoClientException e) {
+            if (ERROR_INVALID_TOKEN.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_TOKEN.getCode(),
+                        ERROR_INVALID_TOKEN.getMessage());
+            } else if (ERROR_INVALID_BASE_URL.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_BASE_URL.getCode(),
+                        ERROR_INVALID_BASE_URL.getMessage());
+            }
         }
         return idVClaims;
     }
@@ -347,7 +369,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      */
     private String createOrUpdateApplicant(Map<String, String> idVProviderConfigProperties,
                                            Map<String, String> idVProviderClaimWithValueMap,
-                                           String applicantId) throws OnfidoServerException {
+                                           String applicantId) throws OnfidoServerException, OnfidoClientException {
 
         JSONObject applicantRequestBody = getApplicantRequestBody(idVProviderClaimWithValueMap);
 
@@ -370,7 +392,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      * @throws OnfidoServerException If there's an error in creating the workflow run or processing the response.
      */
     private String createWorkflowRun(Map<String, String> idVProviderConfigProperties, String applicantId)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         JSONObject workflowRunRequestBody = new JSONObject()
                 .put(WORKFLOW_ID, idVProviderConfigProperties.get(WORKFLOW_ID))
@@ -389,7 +411,7 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
      * @throws OnfidoServerException If there's an error in creating the SDK token or processing the response.
      */
     private String createSdkToken(Map<String, String> idVProviderConfigProperties, String applicantId)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         JSONObject sdkTokenRequestBody = new JSONObject().put(APPLICANT_ID, applicantId);
         JSONObject sdkTokenJsonObject =
@@ -413,10 +435,20 @@ public class OnfidoIdentityVerifier extends AbstractIdentityVerifier {
             JSONObject workflowRunStatusJsonObject =
                     OnfidoAPIClient.getWorkflowRunStatus(idVProviderConfigProperties, workFlowRunId);
             return OnfidoConstants.WorkflowRunStatus.fromString(workflowRunStatusJsonObject.getString(STATUS));
+        } catch (OnfidoClientException e) {
+            if (ERROR_INVALID_TOKEN.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_TOKEN.getCode(),
+                        ERROR_INVALID_TOKEN.getMessage());
+            } else if (ERROR_INVALID_BASE_URL.getCode().equals(e.getErrorCode())) {
+                throw new IdentityVerificationClientException(ERROR_INVALID_BASE_URL.getCode(),
+                        ERROR_INVALID_BASE_URL.getMessage());
+            }
         } catch (OnfidoServerException e) {
             throw new IdentityVerificationServerException(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getCode(),
                     ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getMessage(), e);
         }
+        throw new IdentityVerificationServerException(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getCode(),
+                ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getMessage());
     }
 
     /**

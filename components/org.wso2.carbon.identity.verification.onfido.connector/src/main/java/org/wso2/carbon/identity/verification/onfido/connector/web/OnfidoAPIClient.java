@@ -24,6 +24,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoClientException;
 import org.wso2.carbon.identity.verification.onfido.connector.exception.OnfidoServerException;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.APPLICANTS_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.BASE_URL;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_APPLICANT_ID_NOT_FOUND_IN_ONFIDO;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_BUILDING_ONFIDO_APPLICANT_UPDATE_URI;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_BUILDING_ONFIDO_APPLICANT_URI;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_BUILDING_ONFIDO_SDK_TOKEN_URI;
@@ -43,9 +45,13 @@ import static org.wso2.carbon.identity.verification.onfido.connector.constants.O
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_CREATING_WORKFLOW_RUN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_SDK_TOKEN;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_GETTING_ONFIDO_WORKFLOW_STATUS;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_INVALID_WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_UPDATING_ONFIDO_APPLICANT;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.ErrorMessage.ERROR_WORKFLOW_RUN_ID_NOT_FOUND_IN_ONFIDO;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.SDK_TOKEN_ENDPOINT;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.TOKEN;
+import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_ID;
 import static org.wso2.carbon.identity.verification.onfido.connector.constants.OnfidoConstants.WORKFLOW_RUN_ENDPOINT;
 
 /**
@@ -64,7 +70,7 @@ public class OnfidoAPIClient {
      */
     public static JSONObject createApplicant(Map<String, String> idVConfigPropertyMap,
                                              JSONObject idvClaimsWithValues)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
         String baseUrl = idVConfigPropertyMap.get(BASE_URL);
@@ -73,12 +79,14 @@ public class OnfidoAPIClient {
             URI uri = buildUri(baseUrl, APPLICANTS_ENDPOINT);
             HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri.toString(), idvClaimsWithValues.toString());
 
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_CREATED) {
                 return getJsonObject(response);
+            } else if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                throw new OnfidoClientException(ERROR_INVALID_TOKEN.getCode(), ERROR_INVALID_TOKEN.getMessage());
             } else {
                 throw new OnfidoServerException(ERROR_CREATING_ONFIDO_APPLICANT.getCode(),
-                        String.format(ERROR_CREATING_ONFIDO_APPLICANT.getMessage(),
-                                response.getStatusLine().getStatusCode()));
+                        String.format(ERROR_CREATING_ONFIDO_APPLICANT.getMessage(), statusCode));
             }
         } catch (URISyntaxException e) {
             throw new OnfidoServerException(ERROR_BUILDING_ONFIDO_APPLICANT_URI.getCode(),
@@ -98,7 +106,7 @@ public class OnfidoAPIClient {
      */
     public static JSONObject createWorkflowRun(Map<String, String> idVConfigPropertyMap,
                                                JSONObject workflowRunRequestBody)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
         String baseUrl = idVConfigPropertyMap.get(BASE_URL);
@@ -108,12 +116,17 @@ public class OnfidoAPIClient {
             HttpResponse response =
                     OnfidoWebUtils.httpPost(apiToken, uri.toString(), workflowRunRequestBody.toString());
 
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_CREATED) {
                 return getJsonObject(response);
+            } else if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                throw new OnfidoClientException(ERROR_INVALID_TOKEN.getCode(), ERROR_INVALID_TOKEN.getMessage());
+            } else if (statusCode == HttpStatus.SC_UNPROCESSABLE_ENTITY) {
+                throw new OnfidoClientException(ERROR_INVALID_WORKFLOW_ID.getCode(),
+                        String.format(ERROR_INVALID_WORKFLOW_ID.getMessage(), workflowRunRequestBody.get(WORKFLOW_ID)));
             } else {
                 throw new OnfidoServerException(ERROR_CREATING_WORKFLOW_RUN.getCode(),
-                        String.format(ERROR_CREATING_WORKFLOW_RUN.getMessage(),
-                                response.getStatusLine().getStatusCode()));
+                        String.format(ERROR_CREATING_WORKFLOW_RUN.getMessage(), statusCode));
             }
         } catch (URISyntaxException e) {
             throw new OnfidoServerException(ERROR_BUILDING_WORKFLOW_RUN_URI.getCode(),
@@ -131,7 +144,7 @@ public class OnfidoAPIClient {
      *                               URI building errors or unexpected responses from the Onfido API.
      */
     public static JSONObject createSDKToken(Map<String, String> idVConfigPropertyMap, JSONObject sdkTokenRequestBody)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
         String baseUrl = idVConfigPropertyMap.get(BASE_URL);
@@ -140,12 +153,14 @@ public class OnfidoAPIClient {
             URI uri = buildUri(baseUrl, SDK_TOKEN_ENDPOINT);
             HttpResponse response = OnfidoWebUtils.httpPost(apiToken, uri.toString(), sdkTokenRequestBody.toString());
 
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
                 return getJsonObject(response);
+            } else if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                throw new OnfidoClientException(ERROR_INVALID_TOKEN.getCode(), ERROR_INVALID_TOKEN.getMessage());
             } else {
                 throw new OnfidoServerException(ERROR_GETTING_ONFIDO_SDK_TOKEN.getCode(),
-                        String.format(ERROR_GETTING_ONFIDO_SDK_TOKEN.getMessage(),
-                                response.getStatusLine().getStatusCode()));
+                        String.format(ERROR_GETTING_ONFIDO_SDK_TOKEN.getMessage(), statusCode));
             }
         } catch (URISyntaxException e) {
             throw new OnfidoServerException(ERROR_BUILDING_ONFIDO_SDK_TOKEN_URI.getCode(),
@@ -165,7 +180,7 @@ public class OnfidoAPIClient {
      */
     public static JSONObject updateApplicant(Map<String, String> idVConfigPropertyMap,
                                              JSONObject idvClaimsWithValues, String applicantId)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
         String baseUrl = idVConfigPropertyMap.get(BASE_URL);
@@ -174,12 +189,17 @@ public class OnfidoAPIClient {
             URI uri = buildUri(baseUrl, APPLICANTS_ENDPOINT + "/" + applicantId);
             HttpResponse response = OnfidoWebUtils.httpPut(apiToken, uri.toString(), idvClaimsWithValues.toString());
 
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
                 return getJsonObject(response);
+            } else if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                throw new OnfidoClientException(ERROR_INVALID_TOKEN.getCode(), ERROR_INVALID_TOKEN.getMessage());
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                throw new OnfidoServerException(ERROR_APPLICANT_ID_NOT_FOUND_IN_ONFIDO.getCode(),
+                        String.format(ERROR_APPLICANT_ID_NOT_FOUND_IN_ONFIDO.getMessage(), applicantId));
             } else {
                 throw new OnfidoServerException(ERROR_UPDATING_ONFIDO_APPLICANT.getCode(),
-                        String.format(ERROR_UPDATING_ONFIDO_APPLICANT.getMessage(),
-                                response.getStatusLine().getStatusCode()));
+                        String.format(ERROR_UPDATING_ONFIDO_APPLICANT.getMessage(), statusCode));
             }
         } catch (URISyntaxException e) {
             throw new OnfidoServerException(ERROR_BUILDING_ONFIDO_APPLICANT_UPDATE_URI.getCode(),
@@ -197,7 +217,7 @@ public class OnfidoAPIClient {
      *                               URI building errors, encoding issues, or unexpected responses from the Onfido API.
      */
     public static JSONObject getWorkflowRunStatus(Map<String, String> idVConfigPropertyMap, String workflowRunId)
-            throws OnfidoServerException {
+            throws OnfidoServerException, OnfidoClientException {
 
         String apiToken = idVConfigPropertyMap.get(TOKEN);
         String baseUrl = idVConfigPropertyMap.get(BASE_URL);
@@ -209,6 +229,11 @@ public class OnfidoAPIClient {
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 return getJsonObject(response);
+            } else if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                throw new OnfidoClientException(ERROR_INVALID_TOKEN.getCode(), ERROR_INVALID_TOKEN.getMessage());
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                throw new OnfidoServerException(ERROR_WORKFLOW_RUN_ID_NOT_FOUND_IN_ONFIDO.getCode(),
+                        String.format(ERROR_WORKFLOW_RUN_ID_NOT_FOUND_IN_ONFIDO.getMessage(), workflowRunId));
             } else {
                 throw new OnfidoServerException(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getCode(),
                         String.format(ERROR_GETTING_ONFIDO_WORKFLOW_STATUS.getMessage(), statusCode));
